@@ -8,6 +8,8 @@ on:
 jobs:
   publish:
     runs-on: ${{ matrix.os }}
+    permissions: 
+      contents: write
 
     strategy:
       matrix:
