@@ -2,8 +2,10 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { useEffect, useRef, useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { dracula } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import ScreenshotQueue from '../components/Queue/ScreenshotQueue';
+import { ComplexitySection } from '../components/Solutions/ComplexitySection';
+import { ContentSection } from '../components/Solutions/ContentSection';
 import SolutionCommands from '../components/Solutions/SolutionCommands';
 import {
   Toast,
@@ -13,22 +15,18 @@ import {
   ToastVariant,
 } from '../components/ui/toast';
 import { Screenshot } from '../types/screenshots';
-import { ComplexitySection, ContentSection } from './Solutions';
 
 function CodeSection({
-  title,
   code,
   isLoading,
   currentLanguage,
 }: {
-  title: string;
   code: React.ReactNode;
   isLoading: boolean;
   currentLanguage: string;
 }) {
   return (
     <div className="space-y-2">
-      <h2 className="text-[13px] font-medium text-white tracking-wide" />
       {isLoading ? (
         <div className="space-y-1.5">
           <div className="mt-4 flex">
@@ -41,7 +39,7 @@ function CodeSection({
         <div className="w-full">
           <SyntaxHighlighter
             showLineNumbers
-            language={currentLanguage == 'golang' ? 'go' : currentLanguage}
+            language={currentLanguage === 'golang' ? 'go' : currentLanguage}
             style={dracula}
             customStyle={{
               maxWidth: '100%',
@@ -90,9 +88,6 @@ function Debug({
   currentLanguage,
   setLanguage,
 }: DebugProps) {
-  const [tooltipVisible, setTooltipVisible] = useState(false);
-  const [tooltipHeight, setTooltipHeight] = useState(0);
-
   const { data: screenshots = [], refetch } = useQuery<Screenshot[]>({
     queryKey: ['screenshots'],
     queryFn: fetchScreenshots,
@@ -101,7 +96,6 @@ function Debug({
     refetchOnWindowFocus: false,
   });
 
-  const [oldCode, setOldCode] = useState<string | null>(null);
   const [newCode, setNewCode] = useState<string | null>(null);
   const [thoughtsData, setThoughtsData] = useState<string[] | null>(null);
   const [timeComplexityData, setTimeComplexityData] = useState<string | null>(
@@ -192,11 +186,6 @@ function Debug({
     };
   }, [queryClient, refetch, setIsProcessing]);
 
-  const handleTooltipVisibilityChange = (visible: boolean, height: number) => {
-    setTooltipVisible(visible);
-    setTooltipHeight(height);
-  };
-
   return (
     <div ref={contentRef} className="relative space-y-3 px-4 py-3">
       <Toast
@@ -225,10 +214,8 @@ function Debug({
       {/* Navbar of commands with the tooltip */}
       <SolutionCommands
         screenshots={screenshots}
-        onTooltipVisibilityChange={handleTooltipVisibilityChange}
         isProcessing={isProcessing}
         extraScreenshots={screenshots}
-        credits={window.__CREDITS__}
         currentLanguage={currentLanguage}
         setLanguage={setLanguage}
       />
@@ -244,8 +231,8 @@ function Debug({
                 thoughtsData && (
                   <div className="space-y-3">
                     <div className="space-y-1">
-                      {thoughtsData.map((thought, index) => (
-                        <div key={index} className="flex items-start gap-2">
+                      {thoughtsData.map((thought) => (
+                        <div key={thought} className="flex items-start gap-2">
                           <div className="w-1 h-1 rounded-full bg-blue-400/80 mt-2 shrink-0" />
                           <div>{thought}</div>
                         </div>
@@ -259,7 +246,6 @@ function Debug({
 
             {/* Code Section */}
             <CodeSection
-              title="Solution"
               code={newCode}
               isLoading={!newCode}
               currentLanguage={currentLanguage}

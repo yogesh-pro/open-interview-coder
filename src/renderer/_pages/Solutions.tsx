@@ -1,45 +1,16 @@
 import { useQueryClient } from '@tanstack/react-query';
 import React, { useEffect, useRef, useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { dracula } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { dracula } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 
 import ScreenshotQueue from '../components/Queue/ScreenshotQueue';
-
+import { ComplexitySection } from '../components/Solutions/ComplexitySection';
+import { ContentSection } from '../components/Solutions/ContentSection';
 import SolutionCommands from '../components/Solutions/SolutionCommands';
 import { useToast } from '../contexts/toast';
 import { ProblemStatementData } from '../types/solutions';
 import Debug from './Debug';
 
-interface ContentSectionProps {
-  title: string;
-  content: React.ReactNode;
-  isLoading: boolean;
-}
-
-export function ContentSection({
-  title,
-  content,
-  isLoading,
-}: ContentSectionProps) {
-  return (
-    <div className="space-y-2">
-      <h2 className="text-[13px] font-medium text-white tracking-wide">
-        {title}
-      </h2>
-      {isLoading ? (
-        <div className="mt-4 flex">
-          <p className="text-xs bg-gradient-to-r from-gray-300 via-gray-100 to-gray-300 bg-clip-text text-transparent animate-pulse">
-            Extracting problem statement...
-          </p>
-        </div>
-      ) : (
-        <div className="text-[13px] leading-[1.4] text-gray-100 max-w-[600px]">
-          {content}
-        </div>
-      )}
-    </div>
-  );
-}
 function SolutionSection({
   title,
   content,
@@ -68,7 +39,7 @@ function SolutionSection({
         <div className="w-full">
           <SyntaxHighlighter
             showLineNumbers
-            language={currentLanguage == 'golang' ? 'go' : currentLanguage}
+            language={currentLanguage === 'golang' ? 'go' : currentLanguage}
             style={dracula}
             customStyle={{
               maxWidth: '100%',
@@ -82,44 +53,6 @@ function SolutionSection({
           >
             {content as string}
           </SyntaxHighlighter>
-        </div>
-      )}
-    </div>
-  );
-}
-
-export function ComplexitySection({
-  timeComplexity,
-  spaceComplexity,
-  isLoading,
-}: {
-  timeComplexity: string | null;
-  spaceComplexity: string | null;
-  isLoading: boolean;
-}) {
-  return (
-    <div className="space-y-2">
-      <h2 className="text-[13px] font-medium text-white tracking-wide">
-        Complexity
-      </h2>
-      {isLoading ? (
-        <p className="text-xs bg-gradient-to-r from-gray-300 via-gray-100 to-gray-300 bg-clip-text text-transparent animate-pulse">
-          Calculating complexity...
-        </p>
-      ) : (
-        <div className="space-y-1">
-          <div className="flex items-start gap-2 text-[13px] leading-[1.4] text-gray-100">
-            <div className="w-1 h-1 rounded-full bg-blue-400/80 mt-2 shrink-0" />
-            <div>
-              <strong>Time:</strong> {timeComplexity}
-            </div>
-          </div>
-          <div className="flex items-start gap-2 text-[13px] leading-[1.4] text-gray-100">
-            <div className="w-1 h-1 rounded-full bg-blue-400/80 mt-2 shrink-0" />
-            <div>
-              <strong>Space:</strong> {spaceComplexity}
-            </div>
-          </div>
         </div>
       )}
     </div>
@@ -147,9 +80,6 @@ function Solutions({ setView, currentLanguage, setLanguage }: SolutionsProps) {
   const [spaceComplexityData, setSpaceComplexityData] = useState<string | null>(
     null,
   );
-
-  const [isTooltipVisible, setIsTooltipVisible] = useState(false);
-  const [tooltipHeight, setTooltipHeight] = useState(0);
 
   const [isResetting, setIsResetting] = useState(false);
 
@@ -189,28 +119,6 @@ function Solutions({ setView, currentLanguage, setLanguage }: SolutionsProps) {
   const { showToast } = useToast();
 
   useEffect(() => {
-    // // Height update logic
-    // const updateDimensions = () => {
-    //   if (contentRef.current) {
-    //     let contentHeight = contentRef.current.scrollHeight;
-    //     const contentWidth = contentRef.current.scrollWidth;
-    //     if (isTooltipVisible) {
-    //       contentHeight += tooltipHeight;
-    //     }
-    //     window.electronAPI.updateContentDimensions({
-    //       width: contentWidth,
-    //       height: contentHeight,
-    //     });
-    //   }
-    // };
-
-    // // Initialize resize observer
-    // const resizeObserver = new ResizeObserver(updateDimensions);
-    // if (contentRef.current) {
-    //   resizeObserver.observe(contentRef.current);
-    // }
-    // updateDimensions();
-
     // Set up event listeners
     const cleanupFunctions = [
       window.electronAPI.onScreenshotTaken(async () => {
@@ -285,25 +193,25 @@ function Solutions({ setView, currentLanguage, setLanguage }: SolutionsProps) {
           return;
         }
         console.log({ data });
-        const solutionData = {
+        const solutionDataTemp = {
           code: data.code,
           thoughts: data.thoughts,
           time_complexity: data.time_complexity,
           space_complexity: data.space_complexity,
         };
 
-        queryClient.setQueryData(['solution'], solutionData);
-        setSolutionData(solutionData.code || null);
-        setThoughtsData(solutionData.thoughts || null);
-        setTimeComplexityData(solutionData.time_complexity || null);
-        setSpaceComplexityData(solutionData.space_complexity || null);
+        queryClient.setQueryData(['solution'], solutionDataTemp);
+        setSolutionData(solutionDataTemp.code || null);
+        setThoughtsData(solutionDataTemp.thoughts || null);
+        setTimeComplexityData(solutionDataTemp.time_complexity || null);
+        setSpaceComplexityData(solutionDataTemp.space_complexity || null);
 
         // Fetch latest screenshots when solution is successful
         const fetchScreenshots = async () => {
           try {
             const existing = await window.electronAPI.getScreenshots();
             const screenshots =
-              existing.previews?.map((p) => ({
+              existing.previews?.map((p: { path: any; preview: any }) => ({
                 id: p.path,
                 path: p.path,
                 preview: p.preview,
@@ -352,7 +260,7 @@ function Solutions({ setView, currentLanguage, setLanguage }: SolutionsProps) {
       // resizeObserver.disconnect();
       cleanupFunctions.forEach((cleanup) => cleanup());
     };
-  }, [isTooltipVisible, queryClient, setView, showToast, tooltipHeight]);
+  }, [queryClient, setView, showToast]);
 
   useEffect(() => {
     setProblemStatementData(
@@ -382,11 +290,6 @@ function Solutions({ setView, currentLanguage, setLanguage }: SolutionsProps) {
     });
     return () => unsubscribe();
   }, [queryClient]);
-
-  const handleTooltipVisibilityChange = (visible: boolean, height: number) => {
-    setIsTooltipVisible(visible);
-    setTooltipHeight(height);
-  };
 
   const handleDeleteExtraScreenshot = async (index: number) => {
     const screenshotToDelete = extraScreenshots[index];
@@ -448,7 +351,6 @@ function Solutions({ setView, currentLanguage, setLanguage }: SolutionsProps) {
 
       {/* Navbar of commands with the SolutionsHelper */}
       <SolutionCommands
-        onTooltipVisibilityChange={handleTooltipVisibilityChange}
         isProcessing={!problemStatementData || !solutionData}
         extraScreenshots={extraScreenshots}
         currentLanguage={currentLanguage}
@@ -490,8 +392,11 @@ function Solutions({ setView, currentLanguage, setLanguage }: SolutionsProps) {
                     thoughtsData && (
                       <div className="space-y-3">
                         <div className="space-y-1">
-                          {thoughtsData.map((thought, index) => (
-                            <div key={index} className="flex items-start gap-2">
+                          {thoughtsData.map((thought) => (
+                            <div
+                              key={thought}
+                              className="flex items-start gap-2"
+                            >
                               <div className="w-1 h-1 rounded-full bg-blue-400/80 mt-2 shrink-0" />
                               <div>{thought}</div>
                             </div>

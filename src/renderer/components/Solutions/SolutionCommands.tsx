@@ -1,13 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useToast } from '../../contexts/toast';
 import { Screenshot } from '../../types/screenshots';
-import { LanguageSelector } from '../shared/LanguageSelector';
-import { ShortcutCommand } from '../ShortcutCommand';
 import { APIKeyUpdate } from '../shared/APIKeyUpdate';
+import { LanguageSelector } from '../shared/LanguageSelector';
 
 export interface SolutionCommandsProps {
-  onTooltipVisibilityChange: (visible: boolean, height: number) => void;
   isProcessing: boolean;
+  // eslint-disable-next-line react/no-unused-prop-types
   screenshots?: Screenshot[];
   extraScreenshots?: Screenshot[];
   currentLanguage: string;
@@ -15,7 +14,6 @@ export interface SolutionCommandsProps {
 }
 
 function SolutionCommands({
-  onTooltipVisibilityChange,
   isProcessing,
   extraScreenshots = [],
   currentLanguage,
@@ -24,16 +22,6 @@ function SolutionCommands({
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const { showToast } = useToast();
-
-  useEffect(() => {
-    if (onTooltipVisibilityChange) {
-      let tooltipHeight = 0;
-      if (tooltipRef.current && isTooltipVisible) {
-        tooltipHeight = tooltipRef.current.offsetHeight + 10; // Adjust if necessary
-      }
-      onTooltipVisibilityChange(isTooltipVisible, tooltipHeight);
-    }
-  }, [isTooltipVisible, onTooltipVisibilityChange]);
 
   const handleMouseEnter = () => {
     setIsTooltipVisible(true);

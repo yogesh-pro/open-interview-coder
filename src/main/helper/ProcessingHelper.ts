@@ -271,6 +271,7 @@ export class ProcessingHelper {
       const debugSolutions = await debugSolutionResponses(
         imageDataList,
         problemInfo,
+        signal,
       );
 
       if (!debugSolutions) {

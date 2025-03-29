@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 // @ts-expect-error CommonJs
 import Store from 'electron-store';
 

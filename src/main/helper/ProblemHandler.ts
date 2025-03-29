@@ -412,6 +412,7 @@ Format Requirements:
 export async function debugSolutionResponses(
   imageDataList: string[],
   problemInfo: ProblemInfo,
+  signal: AbortSignal,
 ): Promise<DebugSolutionResponse> {
   // Process images for inclusion in prompt
   const imageContents = imageDataList.map((imageData) => ({
@@ -589,6 +590,7 @@ IMPORTANT FORMATTING NOTES:
       'https://api.openai.com/v1/chat/completions',
       payload,
       {
+        signal,
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${storedApiKey}`,
