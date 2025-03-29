@@ -16,6 +16,8 @@ module.exports = {
     'import/prefer-default-export': 'off',
     'no-console': 'off',
     'no-useless-constructor': 'off',
+    'react/require-default-props': 'off',
+    'jsx-a11y/label-has-associated-control': 'off',
   },
   parserOptions: {
     ecmaVersion: 2022,

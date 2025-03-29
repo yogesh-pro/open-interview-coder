@@ -1,26 +1,25 @@
-import React from "react"
-import ScreenshotItem from "./ScreenshotItem"
+import ScreenshotItem from './ScreenshotItem';
 
 interface Screenshot {
-  path: string
-  preview: string
+  path: string;
+  preview: string;
 }
 
 interface ScreenshotQueueProps {
-  isLoading: boolean
-  screenshots: Screenshot[]
-  onDeleteScreenshot: (index: number) => void
+  isLoading: boolean;
+  screenshots: Screenshot[];
+  onDeleteScreenshot: (index: number) => void;
 }
-const ScreenshotQueue: React.FC<ScreenshotQueueProps> = ({
+function ScreenshotQueue({
   isLoading,
   screenshots,
-  onDeleteScreenshot
-}) => {
+  onDeleteScreenshot,
+}: ScreenshotQueueProps) {
   if (screenshots.length === 0) {
-    return <></>
+    return null;
   }
 
-  const displayScreenshots = screenshots.slice(0, 5)
+  const displayScreenshots = screenshots.slice(0, 5);
 
   return (
     <div className="flex gap-4">
@@ -34,7 +33,7 @@ const ScreenshotQueue: React.FC<ScreenshotQueueProps> = ({
         />
       ))}
     </div>
-  )
+  );
 }
 
-export default ScreenshotQueue
+export default ScreenshotQueue;

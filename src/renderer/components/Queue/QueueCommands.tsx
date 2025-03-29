@@ -1,19 +1,18 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 
 import { useToast } from '../../contexts/toast';
-import { LanguageSelector } from '../shared/LanguageSelector';
 import { cn } from '../../lib/utils';
+import { LanguageSelector } from '../shared/LanguageSelector';
+import { ShortcutCommand } from '../ShortcutCommand';
+import { APIKeyUpdate } from '../shared/APIKeyUpdate';
 
 interface QueueCommandsProps {
-  onTooltipVisibilityChange: (visible: boolean, height: number) => void;
-  // eslint-disable-next-line react/require-default-props
   screenshotCount?: number;
   currentLanguage: string;
   setLanguage: (language: string) => void;
 }
 
 function QueueCommands({
-  onTooltipVisibilityChange,
   screenshotCount = 0,
   currentLanguage,
   setLanguage,
@@ -21,14 +20,6 @@ function QueueCommands({
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const { showToast } = useToast();
-
-  useEffect(() => {
-    let tooltipHeight = 0;
-    if (tooltipRef.current && isTooltipVisible) {
-      tooltipHeight = tooltipRef.current.offsetHeight + 10;
-    }
-    onTooltipVisibilityChange(isTooltipVisible, tooltipHeight);
-  }, [isTooltipVisible, onTooltipVisibilityChange]);
 
   const handleMouseEnter = () => {
     setIsTooltipVisible(true);
@@ -41,7 +32,7 @@ function QueueCommands({
   return (
     <div>
       <div className="pt-2 w-fit">
-        <div className="text-xs text-white/90 backdrop-blur-md bg-black/60 rounded-lg py-2 px-4 flex items-center justify-center gap-4">
+        <div className="text-xs text-white/90 bg-black/60 rounded-lg py-2 px-4 flex items-center justify-center gap-4">
           {/* Screenshot */}
           <button
             type="button"
@@ -144,7 +135,7 @@ function QueueCommands({
             {isTooltipVisible && (
               <div
                 ref={tooltipRef}
-                className="absolute top-full left-0 mt-2 w-80 transform -translate-x-[calc(50%-12px)]"
+                className="absolute top-full left-0 mt-2 transform -translate-x-[calc(50%-12px)]"
                 style={{ zIndex: 100 }}
               >
                 {/* Add transparent bridge */}
@@ -154,9 +145,10 @@ function QueueCommands({
                     <h3 className="font-medium truncate">Keyboard Shortcuts</h3>
                     <div className="space-y-3">
                       {/* Toggle Command */}
-                      <button
-                        type="button"
-                        className="cursor-pointer rounded px-2 py-1.5 hover:bg-white/10 transition-colors"
+                      <ShortcutCommand
+                        title="Toggle Window"
+                        description="Show or hide the main window."
+                        shortcut="⌘B"
                         onClick={async () => {
                           try {
                             const result =
@@ -181,27 +173,13 @@ function QueueCommands({
                             );
                           }
                         }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="truncate">Toggle Window</span>
-                          <div className="flex gap-1 flex-shrink-0">
-                            <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] leading-none">
-                              ⌘
-                            </span>
-                            <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] leading-none">
-                              B
-                            </span>
-                          </div>
-                        </div>
-                        <p className="text-[10px] leading-relaxed text-white/70 truncate mt-1">
-                          Show or hide this window.
-                        </p>
-                      </button>
+                      />
 
                       {/* Screenshot Command */}
-                      <button
-                        type="button"
-                        className="cursor-pointer rounded px-2 py-1.5 hover:bg-white/10 transition-colors"
+                      <ShortcutCommand
+                        title="Take Screenshot"
+                        description="Take a screenshot of the problem description."
+                        shortcut="⌘H"
                         onClick={async () => {
                           try {
                             const result =
@@ -226,31 +204,18 @@ function QueueCommands({
                             );
                           }
                         }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="truncate">Take Screenshot</span>
-                          <div className="flex gap-1 flex-shrink-0">
-                            <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] leading-none">
-                              ⌘
-                            </span>
-                            <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] leading-none">
-                              H
-                            </span>
-                          </div>
-                        </div>
-                        <p className="text-[10px] leading-relaxed text-white/70 truncate mt-1">
-                          Take a screenshot of the problem description.
-                        </p>
-                      </button>
+                      />
 
                       {/* Solve Command */}
-                      <button
-                        type="button"
-                        className={`cursor-pointer rounded px-2 py-1.5 hover:bg-white/10 transition-colors ${
+                      <ShortcutCommand
+                        title="Solve"
+                        description={
                           screenshotCount > 0
-                            ? ''
-                            : 'opacity-50 cursor-not-allowed'
-                        }`}
+                            ? 'Generate a solution based on the current problem.'
+                            : 'Take a screenshot first to generate a solution.'
+                        }
+                        shortcut="⌘↵"
+                        isDisabled={screenshotCount === 0}
                         onClick={async () => {
                           if (screenshotCount === 0) return;
 
@@ -280,24 +245,7 @@ function QueueCommands({
                             );
                           }
                         }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="truncate">Solve</span>
-                          <div className="flex gap-1 flex-shrink-0">
-                            <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] leading-none">
-                              ⌘
-                            </span>
-                            <span className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] leading-none">
-                              ↵
-                            </span>
-                          </div>
-                        </div>
-                        <p className="text-[10px] leading-relaxed text-white/70 truncate mt-1">
-                          {screenshotCount > 0
-                            ? 'Generate a solution based on the current problem.'
-                            : 'Take a screenshot first to generate a solution.'}
-                        </p>
-                      </button>
+                      />
                     </div>
 
                     {/* Separator and Log Out */}
@@ -306,6 +254,8 @@ function QueueCommands({
                         currentLanguage={currentLanguage}
                         setLanguage={setLanguage}
                       />
+
+                      <APIKeyUpdate />
                     </div>
                   </div>
                 </div>

@@ -1,9 +1,8 @@
-// file: src/components/SubscribedApp.tsx
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
+import { useToast } from '../contexts/toast';
 import Queue from './Queue';
 import Solutions from './Solutions';
-import { useToast } from '../contexts/toast';
 
 interface SubscribedAppProps {
   currentLanguage: string;
@@ -41,38 +40,6 @@ export function SubscribedApp({
       cleanup();
     };
   }, [queryClient]);
-
-  // Dynamically update the window size
-  useEffect(() => {
-    if (!containerRef.current) return;
-
-    const updateDimensions = () => {
-      if (!containerRef.current) return;
-      const height = containerRef.current.scrollHeight;
-      const width = containerRef.current.scrollWidth;
-      window.electronAPI?.updateContentDimensions({ width, height });
-    };
-
-    const resizeObserver = new ResizeObserver(updateDimensions);
-    resizeObserver.observe(containerRef.current);
-
-    // Also watch DOM changes
-    const mutationObserver = new MutationObserver(updateDimensions);
-    mutationObserver.observe(containerRef.current, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      characterData: true,
-    });
-
-    // Initial dimension update
-    updateDimensions();
-
-    return () => {
-      resizeObserver.disconnect();
-      mutationObserver.disconnect();
-    };
-  }, [view]);
 
   // Listen for events that might switch views or show errors
   useEffect(() => {

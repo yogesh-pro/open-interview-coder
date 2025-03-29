@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import ScreenshotQueue from '../components/Queue/ScreenshotQueue';
+import { useEffect, useRef } from 'react';
 import QueueCommands from '../components/Queue/QueueCommands';
+import ScreenshotQueue from '../components/Queue/ScreenshotQueue';
 
 import { useToast } from '../contexts/toast';
 import { Screenshot } from '../types/screenshots';
@@ -24,9 +24,6 @@ interface QueueProps {
 
 function Queue({ setView, currentLanguage, setLanguage }: QueueProps) {
   const { showToast } = useToast();
-
-  const [isTooltipVisible, setIsTooltipVisible] = useState(false);
-  const [tooltipHeight, setTooltipHeight] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
 
   const { data: screenshots = [], refetch } = useQuery<Screenshot[]>({
@@ -57,28 +54,6 @@ function Queue({ setView, currentLanguage, setLanguage }: QueueProps) {
   };
 
   useEffect(() => {
-    // Height update logic
-    const updateDimensions = () => {
-      if (contentRef.current) {
-        let contentHeight = contentRef.current.scrollHeight;
-        const contentWidth = contentRef.current.scrollWidth;
-        if (isTooltipVisible) {
-          contentHeight += tooltipHeight;
-        }
-        window.electronAPI.updateContentDimensions({
-          width: contentWidth,
-          height: contentHeight,
-        });
-      }
-    };
-
-    // Initialize resize observer
-    const resizeObserver = new ResizeObserver(updateDimensions);
-    if (contentRef.current) {
-      resizeObserver.observe(contentRef.current);
-    }
-    updateDimensions();
-
     // Set up event listeners
     const cleanupFunctions = [
       window.electronAPI.onScreenshotTaken(() => refetch()),
@@ -103,15 +78,9 @@ function Queue({ setView, currentLanguage, setLanguage }: QueueProps) {
     ];
 
     return () => {
-      resizeObserver.disconnect();
       cleanupFunctions.forEach((cleanup) => cleanup());
     };
-  }, [isTooltipVisible, refetch, setView, showToast, tooltipHeight]);
-
-  const handleTooltipVisibilityChange = (visible: boolean, height: number) => {
-    setIsTooltipVisible(visible);
-    setTooltipHeight(height);
-  };
+  }, [refetch, setView, showToast]);
 
   return (
     <div ref={contentRef} className="bg-transparent w-1/2">
@@ -124,7 +93,6 @@ function Queue({ setView, currentLanguage, setLanguage }: QueueProps) {
           />
 
           <QueueCommands
-            onTooltipVisibilityChange={handleTooltipVisibilityChange}
             screenshotCount={screenshots.length}
             currentLanguage={currentLanguage}
             setLanguage={setLanguage}

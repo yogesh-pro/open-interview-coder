@@ -84,12 +84,12 @@ interface DebugProps {
   setLanguage: (language: string) => void;
 }
 
-const Debug: React.FC<DebugProps> = ({
+function Debug({
   isProcessing,
   setIsProcessing,
   currentLanguage,
   setLanguage,
-}) => {
+}: DebugProps) {
   const [tooltipVisible, setTooltipVisible] = useState(false);
   const [tooltipHeight, setTooltipHeight] = useState(0);
 
@@ -187,32 +187,10 @@ const Debug: React.FC<DebugProps> = ({
       }),
     ];
 
-    // Set up resize observer
-    const updateDimensions = () => {
-      if (contentRef.current) {
-        let contentHeight = contentRef.current.scrollHeight;
-        const contentWidth = contentRef.current.scrollWidth;
-        if (tooltipVisible) {
-          contentHeight += tooltipHeight;
-        }
-        window.electronAPI.updateContentDimensions({
-          width: contentWidth,
-          height: contentHeight,
-        });
-      }
-    };
-
-    const resizeObserver = new ResizeObserver(updateDimensions);
-    if (contentRef.current) {
-      resizeObserver.observe(contentRef.current);
-    }
-    updateDimensions();
-
     return () => {
-      resizeObserver.disconnect();
       cleanupFunctions.forEach((cleanup) => cleanup());
     };
-  }, [queryClient, setIsProcessing]);
+  }, [queryClient, refetch, setIsProcessing]);
 
   const handleTooltipVisibilityChange = (visible: boolean, height: number) => {
     setTooltipVisible(visible);
@@ -298,6 +276,6 @@ const Debug: React.FC<DebugProps> = ({
       </div>
     </div>
   );
-};
+}
 
 export default Debug;

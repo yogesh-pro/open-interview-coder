@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useToast } from '../../contexts/toast';
 import { Screenshot } from '../../types/screenshots';
 import { LanguageSelector } from '../shared/LanguageSelector';
+import { ShortcutCommand } from '../ShortcutCommand';
+import { APIKeyUpdate } from '../shared/APIKeyUpdate';
 
 export interface SolutionCommandsProps {
   onTooltipVisibilityChange: (visible: boolean, height: number) => void;
@@ -208,7 +210,7 @@ function SolutionCommands({
             {isTooltipVisible && (
               <div
                 ref={tooltipRef}
-                className="absolute top-full right-0 mt-2 w-80"
+                className="absolute top-full right-0 mt-2"
                 style={{ zIndex: 100 }}
               >
                 {/* Add transparent bridge */}
@@ -408,6 +410,8 @@ function SolutionCommands({
                         currentLanguage={currentLanguage}
                         setLanguage={setLanguage}
                       />
+
+                      <APIKeyUpdate />
 
                       {/* Credits Display */}
                       {/* <div className="mb-3 px-2 space-y-1">

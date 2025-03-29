@@ -4,6 +4,7 @@ import { getImagePreview, ScreenshotHelper } from './helper/ScreenshotHelper';
 import { ProcessingHelper } from './helper/ProcessingHelper';
 import { MainWindowHelper } from './helper/MainWindowHelper';
 import { AppState } from './state';
+import { store } from './store';
 
 const screenshotHelper = ScreenshotHelper.getInstance();
 const processingHelper = ProcessingHelper.getInstance();
@@ -89,8 +90,8 @@ export function initializeIpcHandlers(): void {
     if (mainWindow) {
       try {
         const screenshotPath = await screenshotHelper.takeScreenshot(
-          mainWindowHelper.hideMainWindow,
-          mainWindowHelper.showMainWindow,
+          () => mainWindowHelper.hideMainWindow(),
+          () => mainWindowHelper.showMainWindow(),
         );
         const preview = await getImagePreview(screenshotPath);
         mainWindow.webContents.send('screenshot-taken', {
@@ -109,8 +110,8 @@ export function initializeIpcHandlers(): void {
   ipcMain.handle('take-screenshot', async () => {
     try {
       const screenshotPath = await screenshotHelper.takeScreenshot(
-        mainWindowHelper.hideMainWindow,
-        mainWindowHelper.showMainWindow,
+        () => mainWindowHelper.hideMainWindow(),
+        () => mainWindowHelper.showMainWindow(),
       );
       const preview = await getImagePreview(screenshotPath);
       return { path: screenshotPath, preview };
@@ -186,5 +187,10 @@ export function initializeIpcHandlers(): void {
       console.error('Error triggering reset:', error);
       return { error: 'Failed to trigger reset' };
     }
+  });
+
+  ipcMain.handle('get-api-key', () => store.get('apiKey'));
+  ipcMain.handle('set-api-key', (event, apiKey: string) => {
+    store.set('apiKey', apiKey);
   });
 }

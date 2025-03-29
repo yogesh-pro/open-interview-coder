@@ -152,6 +152,20 @@ const electronAPI = {
       );
     };
   },
+  onUpdateAvailable: (callback: (info: any) => void) => {
+    const subscription = (_: any, info: any) => callback(info);
+    ipcRenderer.on('update-available', subscription);
+    return () => {
+      ipcRenderer.removeListener('update-available', subscription);
+    };
+  },
+  onUpdateDownloaded: (callback: (info: any) => void) => {
+    const subscription = (_: any, info: any) => callback(info);
+    ipcRenderer.on('update-downloaded', subscription);
+    return () => {
+      ipcRenderer.removeListener('update-downloaded', subscription);
+    };
+  },
   moveWindowLeft: () => ipcRenderer.invoke('move-window-left'),
   moveWindowRight: () => ipcRenderer.invoke('move-window-right'),
   toggleMainWindow: async () => {
@@ -164,14 +178,13 @@ const electronAPI = {
       throw error;
     }
   },
-  updateApiKey: (apiKey: string) =>
-    ipcRenderer.invoke('update-api-key', apiKey),
-  setApiKey: (apiKey: string) => ipcRenderer.invoke('set-api-key', apiKey),
   openExternal: (url: string) => shell.openExternal(url),
   triggerScreenshot: () => ipcRenderer.invoke('trigger-screenshot'),
   triggerProcessScreenshots: () =>
     ipcRenderer.invoke('trigger-process-screenshots'),
   triggerReset: () => ipcRenderer.invoke('trigger-reset'),
+  getApiKey: () => ipcRenderer.invoke('get-api-key'),
+  setApiKey: (apiKey: string) => ipcRenderer.invoke('set-api-key', apiKey),
 };
 
 contextBridge.exposeInMainWorld('electronAPI', electronAPI);

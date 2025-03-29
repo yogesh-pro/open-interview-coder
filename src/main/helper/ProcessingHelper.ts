@@ -170,9 +170,12 @@ export class ProcessingHelper {
       const mainWindow = this.mainWindowHelper.getMainWindow();
       let problemInfo;
 
+      console.log('Processing screenshots:', imageDataList);
+
       // First function call - extract problem info
       try {
         problemInfo = await extractProblemInfo(imageDataList);
+        console.log('Problem info:', problemInfo);
 
         // Store problem info in AppState
         this.appState.setProblemInfo(problemInfo);

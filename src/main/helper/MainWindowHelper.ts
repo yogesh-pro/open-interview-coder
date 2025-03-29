@@ -68,7 +68,7 @@ export class MainWindowHelper {
     };
 
     this.mainWindow = new BrowserWindow({
-      height: 600,
+      useContentSize: true,
       x: 50,
       y: 50,
       alwaysOnTop: true,

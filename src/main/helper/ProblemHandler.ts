@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios';
+import { store } from '../store';
 
 // Define interfaces for ProblemInfo and related structures
 interface DebugSolutionResponse {
@@ -39,7 +40,10 @@ interface ProblemInfo {
 export async function extractProblemInfo(
   imageDataList: string[],
 ): Promise<any> {
-  const storedApiKey = 'asads';
+  const storedApiKey = store.get('apiKey');
+  if (!storedApiKey) {
+    throw new Error('OpenAI API key not set');
+  }
 
   // Prepare the image contents for the message
   const imageContents = imageDataList.map((imageData) => ({
@@ -304,7 +308,7 @@ export async function generateSolutionResponses(
   signal: AbortSignal,
 ): Promise<any> {
   try {
-    const storedApiKey = 'Tempp';
+    const storedApiKey = store.get('apiKey');
     if (!storedApiKey) {
       throw new Error('OpenAI API key not set');
     }
@@ -576,7 +580,7 @@ IMPORTANT FORMATTING NOTES:
 
   try {
     // Send the request to the OpenAI API
-    const storedApiKey = 'asads' as string;
+    const storedApiKey = store.get('apiKey');
     if (!storedApiKey) {
       throw new Error('OpenAI API key not set');
     }

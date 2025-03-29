@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useCallback, useMemo, useState } from 'react';
 import { SubscribedApp } from './_pages/SubscribedApp';
-import { UpdateNotification } from './components/UpdateNotification';
+import { DynamicContainer } from './components/DynamicContainer';
 import {
   Toast,
   ToastDescription,
@@ -53,25 +53,26 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ToastProvider>
-        <ToastContext.Provider value={toastContextValue}>
-          <SubscribedApp
-            currentLanguage={currentLanguage}
-            setLanguage={setCurrentLanguage}
-          />
-          {/* <UpdateNotification /> */}
-          {/* <Toast
-            open={toastOpen}
-            onOpenChange={setToastOpen}
-            variant={toastMessage.variant}
-            duration={3000}
-          >
-            <ToastTitle>{toastMessage.title}</ToastTitle>
-            <ToastDescription>{toastMessage.description}</ToastDescription>
-          </Toast>
-          <ToastViewport /> */}
-        </ToastContext.Provider>
-      </ToastProvider>
+      <DynamicContainer>
+        <ToastProvider>
+          <ToastContext.Provider value={toastContextValue}>
+            <SubscribedApp
+              currentLanguage={currentLanguage}
+              setLanguage={setCurrentLanguage}
+            />
+            <Toast
+              open={toastOpen}
+              onOpenChange={setToastOpen}
+              variant={toastMessage.variant}
+              duration={3000}
+            >
+              <ToastTitle>{toastMessage.title}</ToastTitle>
+              <ToastDescription>{toastMessage.description}</ToastDescription>
+            </Toast>
+            <ToastViewport />
+          </ToastContext.Provider>
+        </ToastProvider>
+      </DynamicContainer>
     </QueryClientProvider>
   );
 }

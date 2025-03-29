@@ -128,17 +128,11 @@ export function ComplexitySection({
 
 export interface SolutionsProps {
   setView: (view: 'queue' | 'solutions' | 'debug') => void;
-  credits: number;
   currentLanguage: string;
   setLanguage: (language: string) => void;
 }
 
-function Solutions({
-  setView,
-  credits,
-  currentLanguage,
-  setLanguage,
-}: SolutionsProps) {
+function Solutions({ setView, currentLanguage, setLanguage }: SolutionsProps) {
   const queryClient = useQueryClient();
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -195,27 +189,27 @@ function Solutions({
   const { showToast } = useToast();
 
   useEffect(() => {
-    // Height update logic
-    const updateDimensions = () => {
-      if (contentRef.current) {
-        let contentHeight = contentRef.current.scrollHeight;
-        const contentWidth = contentRef.current.scrollWidth;
-        if (isTooltipVisible) {
-          contentHeight += tooltipHeight;
-        }
-        window.electronAPI.updateContentDimensions({
-          width: contentWidth,
-          height: contentHeight,
-        });
-      }
-    };
+    // // Height update logic
+    // const updateDimensions = () => {
+    //   if (contentRef.current) {
+    //     let contentHeight = contentRef.current.scrollHeight;
+    //     const contentWidth = contentRef.current.scrollWidth;
+    //     if (isTooltipVisible) {
+    //       contentHeight += tooltipHeight;
+    //     }
+    //     window.electronAPI.updateContentDimensions({
+    //       width: contentWidth,
+    //       height: contentHeight,
+    //     });
+    //   }
+    // };
 
-    // Initialize resize observer
-    const resizeObserver = new ResizeObserver(updateDimensions);
-    if (contentRef.current) {
-      resizeObserver.observe(contentRef.current);
-    }
-    updateDimensions();
+    // // Initialize resize observer
+    // const resizeObserver = new ResizeObserver(updateDimensions);
+    // if (contentRef.current) {
+    //   resizeObserver.observe(contentRef.current);
+    // }
+    // updateDimensions();
 
     // Set up event listeners
     const cleanupFunctions = [
@@ -355,10 +349,10 @@ function Solutions({
     ];
 
     return () => {
-      resizeObserver.disconnect();
+      // resizeObserver.disconnect();
       cleanupFunctions.forEach((cleanup) => cleanup());
     };
-  }, [isTooltipVisible, tooltipHeight]);
+  }, [isTooltipVisible, queryClient, setView, showToast, tooltipHeight]);
 
   useEffect(() => {
     setProblemStatementData(
@@ -424,113 +418,109 @@ function Solutions({
     }
   };
 
+  if (!isResetting && queryClient.getQueryData(['new_solution'])) {
+    return (
+      <Debug
+        isProcessing={debugProcessing}
+        setIsProcessing={setDebugProcessing}
+        currentLanguage={currentLanguage}
+        setLanguage={setLanguage}
+      />
+    );
+  }
+
   return (
-    <>
-      {!isResetting && queryClient.getQueryData(['new_solution']) ? (
-        <Debug
-          isProcessing={debugProcessing}
-          setIsProcessing={setDebugProcessing}
-          currentLanguage={currentLanguage}
-          setLanguage={setLanguage}
-        />
-      ) : (
-        <div ref={contentRef} className="relative space-y-3 px-4 py-3">
-          {/* Conditionally render the screenshot queue if solutionData is available */}
-          {solutionData && (
-            <div className="bg-transparent w-fit">
-              <div className="pb-3">
-                <div className="space-y-3 w-fit">
-                  <ScreenshotQueue
-                    isLoading={debugProcessing}
-                    screenshots={extraScreenshots}
-                    onDeleteScreenshot={handleDeleteExtraScreenshot}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Navbar of commands with the SolutionsHelper */}
-          <SolutionCommands
-            onTooltipVisibilityChange={handleTooltipVisibilityChange}
-            isProcessing={!problemStatementData || !solutionData}
-            extraScreenshots={extraScreenshots}
-            credits={credits}
-            currentLanguage={currentLanguage}
-            setLanguage={setLanguage}
-          />
-
-          {/* Main Content - Modified width constraints */}
-          <div className="w-full text-sm text-black bg-black/60 rounded-md">
-            <div className="rounded-lg overflow-hidden">
-              <div className="px-4 py-3 space-y-4 max-w-full">
-                {!solutionData && (
-                  <>
-                    <ContentSection
-                      title="Problem Statement"
-                      content={problemStatementData?.problem_statement}
-                      isLoading={!problemStatementData}
-                    />
-                    {problemStatementData && (
-                      <div className="mt-4 flex">
-                        <p className="text-xs bg-gradient-to-r from-gray-300 via-gray-100 to-gray-300 bg-clip-text text-transparent animate-pulse">
-                          Generating solutions...
-                        </p>
-                      </div>
-                    )}
-                  </>
-                )}
-
-                {solutionData && (
-                  <>
-                    <ContentSection
-                      title="Problem Statement"
-                      content={problemStatementData?.problem_statement}
-                      isLoading={!problemStatementData}
-                    />
-
-                    <ContentSection
-                      title="My Thoughts"
-                      content={
-                        thoughtsData && (
-                          <div className="space-y-3">
-                            <div className="space-y-1">
-                              {thoughtsData.map((thought, index) => (
-                                <div
-                                  key={index}
-                                  className="flex items-start gap-2"
-                                >
-                                  <div className="w-1 h-1 rounded-full bg-blue-400/80 mt-2 shrink-0" />
-                                  <div>{thought}</div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )
-                      }
-                      isLoading={!thoughtsData}
-                    />
-
-                    <SolutionSection
-                      title="Solution"
-                      content={solutionData}
-                      isLoading={!solutionData}
-                      currentLanguage={currentLanguage}
-                    />
-
-                    <ComplexitySection
-                      timeComplexity={timeComplexityData}
-                      spaceComplexity={spaceComplexityData}
-                      isLoading={!timeComplexityData || !spaceComplexityData}
-                    />
-                  </>
-                )}
-              </div>
+    <div ref={contentRef} className="relative space-y-3 px-4 py-3">
+      {/* Conditionally render the screenshot queue if solutionData is available */}
+      {solutionData && (
+        <div className="bg-transparent w-fit">
+          <div className="pb-3">
+            <div className="space-y-3 w-fit">
+              <ScreenshotQueue
+                isLoading={debugProcessing}
+                screenshots={extraScreenshots}
+                onDeleteScreenshot={handleDeleteExtraScreenshot}
+              />
             </div>
           </div>
         </div>
       )}
-    </>
+
+      {/* Navbar of commands with the SolutionsHelper */}
+      <SolutionCommands
+        onTooltipVisibilityChange={handleTooltipVisibilityChange}
+        isProcessing={!problemStatementData || !solutionData}
+        extraScreenshots={extraScreenshots}
+        currentLanguage={currentLanguage}
+        setLanguage={setLanguage}
+      />
+
+      {/* Main Content - Modified width constraints */}
+      <div className="w-full text-sm text-black bg-black/60 rounded-md">
+        <div className="rounded-lg overflow-hidden">
+          <div className="px-4 py-3 space-y-4 max-w-full">
+            {!solutionData && (
+              <>
+                <ContentSection
+                  title="Problem Statement"
+                  content={problemStatementData?.problem_statement}
+                  isLoading={!problemStatementData}
+                />
+                {problemStatementData && (
+                  <div className="mt-4 flex">
+                    <p className="text-xs bg-gradient-to-r from-gray-300 via-gray-100 to-gray-300 bg-clip-text text-transparent animate-pulse">
+                      Generating solutions...
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
+
+            {solutionData && (
+              <>
+                <ContentSection
+                  title="Problem Statement"
+                  content={problemStatementData?.problem_statement}
+                  isLoading={!problemStatementData}
+                />
+
+                <ContentSection
+                  title="My Thoughts"
+                  content={
+                    thoughtsData && (
+                      <div className="space-y-3">
+                        <div className="space-y-1">
+                          {thoughtsData.map((thought, index) => (
+                            <div key={index} className="flex items-start gap-2">
+                              <div className="w-1 h-1 rounded-full bg-blue-400/80 mt-2 shrink-0" />
+                              <div>{thought}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  }
+                  isLoading={!thoughtsData}
+                />
+
+                <SolutionSection
+                  title="Solution"
+                  content={solutionData}
+                  isLoading={!solutionData}
+                  currentLanguage={currentLanguage}
+                />
+
+                <ComplexitySection
+                  timeComplexity={timeComplexityData}
+                  spaceComplexity={spaceComplexityData}
+                  isLoading={!timeComplexityData || !spaceComplexityData}
+                />
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
