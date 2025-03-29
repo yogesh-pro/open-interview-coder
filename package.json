@@ -191,8 +191,8 @@
     "webpack-merge": "^6.0.1"
   },
   "build": {
-    "productName": "ElectronReact",
-    "appId": "org.erb.ElectronReact",
+    "productName": "Open Interview Coder",
+    "appId": "com.xhoantran.open-interview-coder",
     "asar": true,
     "asarUnpack": "**\\*.{node,dll}",
     "files": [
