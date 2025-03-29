@@ -204,6 +204,7 @@ export class ScreenshotHelper {
       return { success: true };
     } catch (error) {
       console.error('Error deleting file:', error);
+      // @ts-expect-error
       return { success: false, error: error.message || 'Unknown error' };
     }
   }
