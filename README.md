@@ -1,7 +1,7 @@
 # Interview Coder
 
 > [!CAUTION]
-> This project is a fork from original interview-coder and in active development. The original project is no longer maintained and has been archived. This fork aims to continue the development and provide new features.
+> This project is a fork from original [ibttf/interview-coder](https://github.com/ibttf/interview-coder) and in **active development**. The original project is no longer maintained and has been archived. This fork aims to continue the development and provide new features.
 
 An invisible desktop application that will help you pass your technical interviews.
 
