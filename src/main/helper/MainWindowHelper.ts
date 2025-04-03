@@ -3,8 +3,8 @@ import { app, BrowserWindow, screen, shell } from 'electron';
 import log from 'electron-log';
 import { autoUpdater } from 'electron-updater';
 import path from 'path';
-import { isDebug } from '../constant';
-import MenuBuilder from '../menu';
+
+import stateManager from '../stateManager';
 import { resolveHtmlPath } from '../util';
 
 class AppUpdater {
@@ -47,9 +47,9 @@ export class MainWindowHelper {
   }
 
   public async createWindow() {
-    if (isDebug) {
-      await MainWindowHelper.installExtensions();
-    }
+    // if (isDebug) {
+    //   await MainWindowHelper.installExtensions();
+    // }
 
     if (this.mainWindow) {
       if (this.mainWindow.isMinimized()) {
@@ -93,6 +93,7 @@ export class MainWindowHelper {
       titleBarStyle: 'hidden',
       enableLargerThanScreen: true,
       movable: true,
+      resizable: false,
       icon: getAssetPath('icon.png'),
     });
 
@@ -113,9 +114,6 @@ export class MainWindowHelper {
       this.mainWindow = null;
     });
 
-    const menuBuilder = new MenuBuilder(this.mainWindow);
-    menuBuilder.buildMenu();
-
     // Open urls in the user's browser
     this.mainWindow.webContents.setWindowOpenHandler((edata) => {
       shell.openExternal(edata.url);
@@ -129,6 +127,7 @@ export class MainWindowHelper {
       visibleOnFullScreen: true,
     });
     this.mainWindow.setAlwaysOnTop(true, 'floating', 1);
+    // this.mainWindow.setIgnoreMouseEvents(true, { forward: true });
 
     // Additional screen capture resistance settings
     if (process.platform === 'darwin') {
@@ -146,6 +145,12 @@ export class MainWindowHelper {
     // Prevent the window from being captured by screen recording
     this.mainWindow.webContents.setBackgroundThrottling(false);
     this.mainWindow.webContents.setFrameRate(60);
+
+    stateManager.subscribe((state) => {
+      if (this.mainWindow) {
+        this.mainWindow.webContents.send('state:sync', state);
+      }
+    });
 
     // Remove this if your app does not use auto updates
     // eslint-disable-next-line
@@ -210,11 +215,6 @@ export class MainWindowHelper {
   public hideMainWindow() {
     if (!this.mainWindow || this.mainWindow.isDestroyed()) return;
 
-    this.mainWindow.setIgnoreMouseEvents(true, { forward: true });
-    this.mainWindow.setAlwaysOnTop(true, 'floating', 1);
-    this.mainWindow.setVisibleOnAllWorkspaces(true, {
-      visibleOnFullScreen: true,
-    });
     this.mainWindow.setOpacity(0);
     this.mainWindow.hide();
   }
@@ -222,13 +222,7 @@ export class MainWindowHelper {
   public showMainWindow() {
     if (!this.mainWindow || this.mainWindow.isDestroyed()) return;
 
-    this.mainWindow.setIgnoreMouseEvents(false);
-    this.mainWindow.setAlwaysOnTop(true, 'floating', 1);
-    this.mainWindow.setVisibleOnAllWorkspaces(true, {
-      visibleOnFullScreen: true,
-    });
     this.mainWindow.setContentProtection(true);
-    this.mainWindow.setOpacity(0);
     this.mainWindow.showInactive();
     this.mainWindow.setOpacity(1);
   }
@@ -239,5 +233,18 @@ export class MainWindowHelper {
     } else {
       this.showMainWindow();
     }
+  }
+
+  public adjustOpacity(delta: number): void {
+    if (!this.mainWindow) return;
+
+    const currentOpacity = stateManager.getState().opacity || 100;
+    const newOpacity = Math.max(10, Math.min(100, currentOpacity + delta));
+    console.log(`Adjusting opacity from ${currentOpacity} to ${newOpacity}`);
+    this.mainWindow.setOpacity(newOpacity / 100);
+
+    stateManager.setState({
+      opacity: newOpacity,
+    });
   }
 }

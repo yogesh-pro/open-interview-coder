@@ -1,25 +1,15 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 
-import { useToast } from '../../contexts/toast';
-import { cn } from '../../lib/utils';
-import { LanguageSelector } from '../shared/LanguageSelector';
-import { ShortcutCommand } from '../ShortcutCommand';
-import { APIKeyUpdate } from '../shared/APIKeyUpdate';
+import { LanguageSelector } from '../../../components/LanguageSelector';
+import { ShortcutCommand } from '../../../components/ShortcutCommand';
+import { cn } from '../../../lib/utils';
 
 interface QueueCommandsProps {
   screenshotCount?: number;
-  currentLanguage: string;
-  setLanguage: (language: string) => void;
 }
 
-function QueueCommands({
-  screenshotCount = 0,
-  currentLanguage,
-  setLanguage,
-}: QueueCommandsProps) {
+function QueueCommands({ screenshotCount = 0 }: QueueCommandsProps) {
   const [isTooltipVisible, setIsTooltipVisible] = useState(false);
-  const tooltipRef = useRef<HTMLDivElement>(null);
-  const { showToast } = useToast();
 
   const handleMouseEnter = () => {
     setIsTooltipVisible(true);
@@ -42,11 +32,9 @@ function QueueCommands({
                 const result = await window.electronAPI.triggerScreenshot();
                 if (!result.success) {
                   console.error('Failed to take screenshot:', result.error);
-                  showToast('Error', 'Failed to take screenshot', 'error');
                 }
               } catch (error) {
                 console.error('Error taking screenshot:', error);
-                showToast('Error', 'Failed to take screenshot', 'error');
               }
             }}
           >
@@ -79,15 +67,9 @@ function QueueCommands({
                       'Failed to process screenshots:',
                       result.error,
                     );
-                    showToast(
-                      'Error',
-                      'Failed to process screenshots',
-                      'error',
-                    );
                   }
                 } catch (error) {
                   console.error('Error processing screenshots:', error);
-                  showToast('Error', 'Failed to process screenshots', 'error');
                 }
               }}
             >
@@ -134,7 +116,6 @@ function QueueCommands({
             {/* Tooltip Content */}
             {isTooltipVisible && (
               <div
-                ref={tooltipRef}
                 className="absolute top-full left-0 mt-2 transform -translate-x-[calc(50%-12px)]"
                 style={{ zIndex: 100 }}
               >
@@ -158,19 +139,9 @@ function QueueCommands({
                                 'Failed to toggle window:',
                                 result.error,
                               );
-                              showToast(
-                                'Error',
-                                'Failed to toggle window',
-                                'error',
-                              );
                             }
                           } catch (error) {
                             console.error('Error toggling window:', error);
-                            showToast(
-                              'Error',
-                              'Failed to toggle window',
-                              'error',
-                            );
                           }
                         }}
                       />
@@ -189,19 +160,9 @@ function QueueCommands({
                                 'Failed to take screenshot:',
                                 result.error,
                               );
-                              showToast(
-                                'Error',
-                                'Failed to take screenshot',
-                                'error',
-                              );
                             }
                           } catch (error) {
                             console.error('Error taking screenshot:', error);
-                            showToast(
-                              'Error',
-                              'Failed to take screenshot',
-                              'error',
-                            );
                           }
                         }}
                       />
@@ -227,21 +188,11 @@ function QueueCommands({
                                 'Failed to process screenshots:',
                                 result.error,
                               );
-                              showToast(
-                                'Error',
-                                'Failed to process screenshots',
-                                'error',
-                              );
                             }
                           } catch (error) {
                             console.error(
                               'Error processing screenshots:',
                               error,
-                            );
-                            showToast(
-                              'Error',
-                              'Failed to process screenshots',
-                              'error',
                             );
                           }
                         }}
@@ -250,12 +201,7 @@ function QueueCommands({
 
                     {/* Separator and Log Out */}
                     <div className="pt-3 mt-3 border-t border-white/10">
-                      <LanguageSelector
-                        currentLanguage={currentLanguage}
-                        setLanguage={setLanguage}
-                      />
-
-                      <APIKeyUpdate />
+                      <LanguageSelector />
                     </div>
                   </div>
                 </div>

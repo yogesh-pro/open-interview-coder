@@ -1,20 +1,9 @@
-import axios from 'axios';
-import fs from 'node:fs';
-import { PROCESSING_EVENTS } from '../constant';
-import { AppState } from '../state';
-import { getImagePreview, ScreenshotHelper } from './ScreenshotHelper';
+import { Screenshot } from '../../types';
+import { extractProblemInfo, generateSolutionResponses } from '../processor';
+import stateManager from '../stateManager';
 import { MainWindowHelper } from './MainWindowHelper';
-import {
-  debugSolutionResponses,
-  extractProblemInfo,
-  generateSolutionResponses,
-} from './ProblemHandler';
 
 export class ProcessingHelper {
-  private appState: AppState = AppState.getInstance();
-
-  private screenshotHelper: ScreenshotHelper = ScreenshotHelper.getInstance();
-
   private mainWindowHelper: MainWindowHelper = MainWindowHelper.getInstance();
 
   // AbortControllers for API requests
@@ -40,268 +29,47 @@ export class ProcessingHelper {
     const mainWindow = this.mainWindowHelper.getMainWindow();
     if (!mainWindow) return;
 
-    const view = this.appState.getView();
+    const { view } = stateManager.getState();
 
     if (view === 'queue') {
-      const screenshotQueue = this.screenshotHelper.getScreenshotQueue();
+      const { screenshotQueue } = stateManager.getState();
       if (screenshotQueue.length === 0) {
-        mainWindow.webContents.send(PROCESSING_EVENTS.NO_SCREENSHOTS);
         return;
       }
 
-      mainWindow.webContents.send(PROCESSING_EVENTS.INITIAL_START);
-      this.appState.setView('solutions');
+      stateManager.setState({ view: 'solutions' });
 
       // Initialize AbortController
       this.currentProcessingAbortController = new AbortController();
       const { signal } = this.currentProcessingAbortController;
 
       try {
-        const screenshots = await Promise.all(
-          screenshotQueue.map(async (path) => ({
-            path,
-            preview: await getImagePreview(path),
-            data: fs.readFileSync(path).toString('base64'), // Read image data
-          })),
-        );
-
-        const result = await this.processScreenshotsHelper(screenshots, signal);
-
-        if (!result.success) {
-          if (result.error?.includes('API Key out of credits')) {
-            mainWindow.webContents.send(
-              PROCESSING_EVENTS.API_KEY_OUT_OF_CREDITS,
-            );
-          } else if (
-            result.error?.includes(
-              'Please close this window and re-enter a valid Open AI API key.',
-            )
-          ) {
-            mainWindow.webContents.send(PROCESSING_EVENTS.API_KEY_INVALID);
-          } else {
-            mainWindow.webContents.send(
-              PROCESSING_EVENTS.INITIAL_SOLUTION_ERROR,
-              result.error,
-            );
-          }
-        }
+        await this.processScreenshotsHelper(screenshotQueue, signal);
       } catch (error: any) {
-        if (axios.isCancel(error)) {
-          mainWindow.webContents.send(
-            PROCESSING_EVENTS.INITIAL_SOLUTION_ERROR,
-            'Processing was canceled by the user.',
-          );
-        } else {
-          mainWindow.webContents.send(
-            PROCESSING_EVENTS.INITIAL_SOLUTION_ERROR,
-            error.message,
-          );
-        }
+        console.error('Error processing screenshots:', error);
       } finally {
         this.currentProcessingAbortController = null;
       }
-    } else {
-      // view == 'solutions'
-      const extraScreenshotQueue =
-        this.screenshotHelper.getExtraScreenshotQueue();
-      if (extraScreenshotQueue.length === 0) {
-        mainWindow.webContents.send(PROCESSING_EVENTS.NO_SCREENSHOTS);
-        return;
-      }
-      mainWindow.webContents.send(PROCESSING_EVENTS.DEBUG_START);
-
-      // Initialize AbortController
-      this.currentExtraProcessingAbortController = new AbortController();
-      const { signal } = this.currentExtraProcessingAbortController;
-
-      try {
-        const screenshots = await Promise.all(
-          [
-            ...this.screenshotHelper.getScreenshotQueue(),
-            ...extraScreenshotQueue,
-          ].map(async (path) => ({
-            path,
-            preview: await getImagePreview(path),
-            data: fs.readFileSync(path).toString('base64'), // Read image data
-          })),
-        );
-
-        const result = await this.processExtraScreenshotsHelper(
-          screenshots,
-          signal,
-        );
-
-        if (result.success) {
-          this.appState.setHasDebugged(true);
-          mainWindow.webContents.send(
-            PROCESSING_EVENTS.DEBUG_SUCCESS,
-            result.data,
-          );
-        } else {
-          mainWindow.webContents.send(
-            PROCESSING_EVENTS.DEBUG_ERROR,
-            result.error,
-          );
-        }
-      } catch (error: any) {
-        if (axios.isCancel(error)) {
-          mainWindow.webContents.send(
-            PROCESSING_EVENTS.DEBUG_ERROR,
-            'Extra processing was canceled by the user.',
-          );
-        } else {
-          mainWindow.webContents.send(
-            PROCESSING_EVENTS.DEBUG_ERROR,
-            error.message,
-          );
-        }
-      } finally {
-        this.currentExtraProcessingAbortController = null;
-      }
     }
   }
 
+  // eslint-disable-next-line class-methods-use-this
   private async processScreenshotsHelper(
-    screenshots: Array<{ path: string; data: string }>,
+    screenshots: Array<Screenshot>,
     signal: AbortSignal,
   ) {
-    try {
-      const imageDataList = screenshots.map((screenshot) => screenshot.data);
-      const mainWindow = this.mainWindowHelper.getMainWindow();
-      let problemInfo;
+    console.log('Processing screenshots...');
+    const imageDataList = screenshots.map((screenshot) => screenshot.data);
 
-      console.log('Processing screenshots:', imageDataList);
+    // Store problem info in AppState
+    console.log('Extracting problem info...');
+    const problemInfo = await extractProblemInfo(imageDataList, signal);
+    stateManager.setState({ problemInfo });
 
-      // First function call - extract problem info
-      try {
-        problemInfo = await extractProblemInfo(imageDataList);
-        console.log('Problem info:', problemInfo);
-
-        // Store problem info in AppState
-        this.appState.setProblemInfo(problemInfo);
-
-        // Send first success event
-        if (mainWindow) {
-          mainWindow.webContents.send(
-            PROCESSING_EVENTS.PROBLEM_EXTRACTED,
-            problemInfo,
-          );
-        }
-      } catch (error: any) {
-        if (error.message?.includes('API Key out of credits')) {
-          throw new Error(error.message);
-        }
-        throw error; // Re-throw if not an API key error
-      }
-
-      // Second function call - generate solutions
-      if (mainWindow) {
-        const solutionsResult = await this.generateSolutionsHelper(signal);
-        if (solutionsResult.success) {
-          mainWindow.webContents.send(
-            PROCESSING_EVENTS.SOLUTION_SUCCESS,
-            solutionsResult.data,
-          );
-        } else {
-          throw new Error(
-            solutionsResult.error || 'Failed to generate solutions',
-          );
-        }
-      }
-
-      return { success: true, data: problemInfo };
-    } catch (error: any) {
-      return { success: false, error: error.message };
-    }
-  }
-
-  private async generateSolutionsHelper(signal: AbortSignal) {
-    try {
-      const problemInfo = this.appState.getProblemInfo();
-      if (!problemInfo) {
-        throw new Error('No problem info available');
-      }
-
-      // Use the generateSolutionResponses function
-      const solutions = await generateSolutionResponses(problemInfo, signal);
-
-      if (!solutions) {
-        throw new Error('No solutions received');
-      }
-
-      return { success: true, data: solutions };
-    } catch (error: any) {
-      const mainWindow = this.mainWindowHelper.getMainWindow();
-
-      // Check if error message indicates API key out of credits
-      if (error.message?.includes('API Key out of credits')) {
-        if (mainWindow) {
-          mainWindow.webContents.send(PROCESSING_EVENTS.API_KEY_OUT_OF_CREDITS);
-        }
-        return { success: false, error: error.message };
-      }
-      if (
-        error.message?.includes(
-          'Please close this window and re-enter a valid Open AI API key.',
-        )
-      ) {
-        if (mainWindow) {
-          mainWindow.webContents.send(PROCESSING_EVENTS.API_KEY_INVALID);
-        }
-        return { success: false, error: error.message };
-      }
-
-      return { success: false, error: error.message };
-    }
-  }
-
-  private async processExtraScreenshotsHelper(
-    screenshots: Array<{ path: string; data: string }>,
-    signal: AbortSignal,
-  ) {
-    try {
-      const imageDataList = screenshots.map((screenshot) => screenshot.data);
-
-      const problemInfo = this.appState.getProblemInfo();
-      if (!problemInfo) {
-        throw new Error('No problem info available');
-      }
-
-      // Use the debugSolutionResponses function
-      const debugSolutions = await debugSolutionResponses(
-        imageDataList,
-        problemInfo,
-        signal,
-      );
-
-      if (!debugSolutions) {
-        throw new Error('No debug solutions received');
-      }
-
-      return { success: true, data: debugSolutions };
-    } catch (error: any) {
-      const mainWindow = this.mainWindowHelper.getMainWindow();
-
-      // Check if error message indicates API key out of credits
-      if (error.message?.includes('API Key out of credits')) {
-        if (mainWindow) {
-          mainWindow.webContents.send(PROCESSING_EVENTS.API_KEY_OUT_OF_CREDITS);
-        }
-        return { success: false, error: error.message };
-      }
-
-      if (
-        error.message?.includes(
-          'Please close this window and re-enter a valid Open AI API key.',
-        )
-      ) {
-        if (mainWindow) {
-          mainWindow.webContents.send(PROCESSING_EVENTS.API_KEY_INVALID);
-        }
-        return { success: false, error: error.message };
-      }
-      return { success: false, error: error.message };
-    }
+    // Second function call - generate solutions
+    console.log('Generating solutions...');
+    const solutionData = await generateSolutionResponses(problemInfo, signal);
+    stateManager.setState({ solutionData });
   }
 
   public cancelOngoingRequests(): void {
@@ -320,9 +88,6 @@ export class ProcessingHelper {
 
       wasCancelled = true;
     }
-
-    // Reset hasDebugged flag
-    this.appState.setHasDebugged(false);
 
     const mainWindow = this.mainWindowHelper.getMainWindow();
     if (wasCancelled && mainWindow && !mainWindow.isDestroyed()) {
