@@ -10,25 +10,9 @@ const electronAPI = {
     ipcRenderer.on('state:sync', listener);
     return () => ipcRenderer.removeListener('state:sync', listener);
   },
-
   updateContentDimensions: (dimensions: { width: number; height: number }) =>
     ipcRenderer.invoke('update-content-dimensions', dimensions),
-  deleteScreenshot: (path: string) =>
-    ipcRenderer.invoke('delete-screenshot', path),
-  toggleMainWindow: async () => {
-    try {
-      const result = await ipcRenderer.invoke('toggle-window');
-      console.log('toggle-window result:', result);
-      return result;
-    } catch (error) {
-      console.error('Error in toggleMainWindow:', error);
-      throw error;
-    }
-  },
-  triggerScreenshot: () => ipcRenderer.invoke('trigger-screenshot'),
-  triggerProcessScreenshots: () =>
-    ipcRenderer.invoke('trigger-process-screenshots'),
-  triggerReset: () => ipcRenderer.invoke('trigger-reset'),
+  isMac: () => ipcRenderer.invoke('is-mac'),
 };
 
 contextBridge.exposeInMainWorld('electronAPI', electronAPI);

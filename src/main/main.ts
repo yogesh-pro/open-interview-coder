@@ -30,6 +30,16 @@ if (!app.requestSingleInstanceLock()) {
       mainWindowHelper.destroy();
     }
   });
+  app.on('second-instance', () => {
+    // Someone tried to run a second instance, we should focus our window.
+    const mainWindow = mainWindowHelper.getMainWindow();
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) {
+        mainWindow.restore();
+      }
+      mainWindow.focus();
+    }
+  });
 }
 
 app

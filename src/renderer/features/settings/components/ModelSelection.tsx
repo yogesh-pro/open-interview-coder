@@ -7,6 +7,7 @@ type ModelSelectionProps = {
   value: ModelType | null;
   onChange: (value: ModelType) => void;
   options: ModelType[];
+  recommended?: readonly ModelType[];
 };
 
 export function ModelSelection({
@@ -15,6 +16,7 @@ export function ModelSelection({
   value,
   onChange,
   options,
+  recommended = [],
 }: ModelSelectionProps) {
   const id = `model-selection-${label.replace(/\s+/g, '-').toLowerCase()}`;
 
@@ -46,7 +48,10 @@ export function ModelSelection({
           )}
           {options.map((option) => (
             <option key={option} value={option}>
-              {option}
+              {option}{' '}
+              {recommended?.includes(option) && (
+                <span className="text-green-500">(Recommended)</span>
+              )}
             </option>
           ))}
         </select>

@@ -3,8 +3,14 @@ import stateManager from '../stateManager';
 import { MainWindowHelper } from './MainWindowHelper';
 import { ProcessingHelper } from './ProcessingHelper';
 import { takeScreenshot } from './ScreenshotHelper';
+import { AcceleratorElement } from '../../types';
+import { SHORTCUTS } from '../../constant';
 
 export const STEP = 50;
+
+const buildAccelerator = (elements: readonly AcceleratorElement[]): string => {
+  return elements.join('+');
+};
 
 export class ShortcutsHelper {
   private processingHelper: ProcessingHelper = ProcessingHelper.getInstance();
@@ -26,27 +32,30 @@ export class ShortcutsHelper {
   }
 
   public registerGlobalShortcuts(): void {
-    globalShortcut.register('CommandOrControl+H', async () => {
-      const mainWindow = this.mainWindowHelper.getMainWindow();
-      if (mainWindow) {
-        console.log('Taking screenshot...');
-        try {
-          await takeScreenshot(
-            () => this.mainWindowHelper.hideMainWindow(),
-            () => this.mainWindowHelper.showMainWindow(),
-            stateManager.getState().view !== 'queue',
-          );
-        } catch (error) {
-          console.error('Error capturing screenshot:', error);
+    globalShortcut.register(
+      buildAccelerator(SHORTCUTS.SCREENSHOT),
+      async () => {
+        const mainWindow = this.mainWindowHelper.getMainWindow();
+        if (mainWindow) {
+          console.log('Taking screenshot...');
+          try {
+            await takeScreenshot(
+              () => this.mainWindowHelper.hideMainWindow(),
+              () => this.mainWindowHelper.showMainWindow(),
+              stateManager.getState().view !== 'queue',
+            );
+          } catch (error) {
+            console.error('Error capturing screenshot:', error);
+          }
         }
-      }
-    });
+      },
+    );
 
-    globalShortcut.register('CommandOrControl+Enter', async () => {
+    globalShortcut.register(buildAccelerator(SHORTCUTS.SOLVE), async () => {
       await this.processingHelper?.processScreenshots();
     });
 
-    globalShortcut.register('CommandOrControl+R', () => {
+    globalShortcut.register(buildAccelerator(SHORTCUTS.RESET), () => {
       console.log(
         'Command + R pressed. Canceling requests and resetting queues...',
       );
@@ -72,52 +81,75 @@ export class ShortcutsHelper {
     });
 
     // New shortcuts for moving the window
-    globalShortcut.register('CommandOrControl+Left', () => {
-      console.log('Command/Ctrl + Left pressed. Moving window left.');
-      this.mainWindowHelper.moveWindowHorizontal((x, windowWidth) =>
-        Math.max(-(windowWidth || 0) / 2, x - STEP),
-      );
-    });
+    globalShortcut.register(
+      buildAccelerator(SHORTCUTS.MOVE_WINDOW_LEFT),
+      () => {
+        console.log('Command/Ctrl + Left pressed. Moving window left.');
+        this.mainWindowHelper.moveWindowHorizontal((x, windowWidth) =>
+          Math.max(-(windowWidth || 0) / 2, x - STEP),
+        );
+      },
+    );
 
-    globalShortcut.register('CommandOrControl+Right', () => {
-      console.log('Command/Ctrl + Right pressed. Moving window right.');
-      this.mainWindowHelper.moveWindowHorizontal(
-        (x, windowWidth, screenWidth) =>
-          Math.min(screenWidth - (windowWidth || 0) / 2, x + STEP),
-      );
-    });
+    globalShortcut.register(
+      buildAccelerator(SHORTCUTS.MOVE_WINDOW_RIGHT),
+      () => {
+        console.log('Command/Ctrl + Right pressed. Moving window right.');
+        this.mainWindowHelper.moveWindowHorizontal(
+          (x, windowWidth, screenWidth) =>
+            Math.min(screenWidth - (windowWidth || 0) / 2, x + STEP),
+        );
+      },
+    );
 
-    globalShortcut.register('CommandOrControl+Down', () => {
-      console.log('Command/Ctrl + down pressed. Moving window down.');
-      this.mainWindowHelper.moveWindowVertical((y) => y + STEP);
-    });
+    globalShortcut.register(
+      buildAccelerator(SHORTCUTS.MOVE_WINDOW_DOWN),
+      () => {
+        console.log('Command/Ctrl + down pressed. Moving window down.');
+        this.mainWindowHelper.moveWindowVertical((y) => y + STEP);
+      },
+    );
 
-    globalShortcut.register('CommandOrControl+Up', () => {
+    globalShortcut.register(buildAccelerator(SHORTCUTS.MOVE_WINDOW_UP), () => {
       console.log('Command/Ctrl + Up pressed. Moving window Up.');
       this.mainWindowHelper.moveWindowVertical((y) => y - STEP);
     });
 
-    globalShortcut.register('CommandOrControl+B', () => {
+    globalShortcut.register(buildAccelerator(SHORTCUTS.TOGGLE_WINDOW), () => {
       this.mainWindowHelper.toggleMainWindow();
     });
 
     // Adjust opacity shortcuts
-    globalShortcut.register('CommandOrControl+[', () => {
-      console.log('Command/Ctrl + [ pressed. Decreasing opacity.');
-      this.mainWindowHelper.adjustOpacity(-10);
-    });
+    globalShortcut.register(
+      buildAccelerator(SHORTCUTS.DECREASE_OPACITY),
+      () => {
+        console.log('Command/Ctrl + [ pressed. Decreasing opacity.');
+        this.mainWindowHelper.adjustOpacity(-10);
+      },
+    );
 
-    globalShortcut.register('CommandOrControl+]', () => {
-      console.log('Command/Ctrl + ] pressed. Increasing opacity.');
-      this.mainWindowHelper.adjustOpacity(10);
-    });
+    globalShortcut.register(
+      buildAccelerator(SHORTCUTS.INCREASE_OPACITY),
+      () => {
+        console.log('Command/Ctrl + ] pressed. Increasing opacity.');
+        this.mainWindowHelper.adjustOpacity(10);
+      },
+    );
 
-    globalShortcut.register('CommandOrControl+Shift+I', () => {
+    globalShortcut.register(buildAccelerator(SHORTCUTS.TOGGLE_SETTINGS), () => {
       console.log('Command/Ctrl + Shift + I pressed. Opening settings.');
       const { view } = stateManager.getState();
-      stateManager.setState({
-        view: view === 'settings' ? 'queue' : 'settings',
-      });
+      if (view === 'settings') {
+        stateManager.setState({
+          view: 'queue',
+        });
+        this.mainWindowHelper.setIgnoreMouseEvents(true);
+      } else {
+        stateManager.setState({
+          view: 'settings',
+        });
+        this.mainWindowHelper.setIgnoreMouseEvents(false);
+      }
     });
 
     // Unregister shortcuts when quitting

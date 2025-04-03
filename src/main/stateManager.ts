@@ -25,6 +25,11 @@ class StateManager {
         solutionModel: 'gpt-4o',
         language: LANGUAGES.PYTHON,
         opacity: 100,
+
+        // Metadata
+        metadata: {
+          isMac: process.platform === 'darwin',
+        },
       },
       encryptionKey: 'your-encryption-key', // Replace with your actual encryption key
     });

@@ -1,4 +1,3 @@
-import ScreenshotQueue from '../../components/ScreenshotQueue';
 import { useSyncedStore } from '../../lib/store';
 import { ComplexitySection } from './components/ComplexitySection';
 import { ContentSection } from './components/ContentSection';
@@ -6,45 +5,12 @@ import SolutionCommands from './components/SolutionCommands';
 import { SolutionSection } from './components/SolutionSection';
 
 function Solutions() {
-  const { extraScreenshotQueue, problemInfo, solutionData } = useSyncedStore();
-
-  const handleDeleteExtraScreenshot = async (index: number) => {
-    const screenshotToDelete = extraScreenshotQueue[index];
-
-    try {
-      const response = await window.electronAPI.deleteScreenshot(
-        screenshotToDelete.id,
-      );
-
-      if (!response.success) {
-        console.error('Failed to delete extra screenshot:', response.error);
-      }
-    } catch (error) {
-      console.error('Error deleting extra screenshot:', error);
-    }
-  };
+  const { problemInfo, solutionData } = useSyncedStore();
 
   return (
     <div className="relative space-y-3 px-4 py-3">
-      {/* Conditionally render the screenshot queue if solutionData is available */}
-      {solutionData && (
-        <div className="bg-transparent w-fit">
-          <div className="pb-3">
-            <div className="space-y-3 w-fit">
-              <ScreenshotQueue
-                screenshots={extraScreenshotQueue}
-                onDeleteScreenshot={handleDeleteExtraScreenshot}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Navbar of commands with the SolutionsHelper */}
-      <SolutionCommands
-        isProcessing={!problemInfo || !solutionData}
-        extraScreenshots={extraScreenshotQueue}
-      />
+      <SolutionCommands />
 
       {/* Main Content - Modified width constraints */}
       <div className="w-full text-sm text-black bg-black/60 rounded-md">

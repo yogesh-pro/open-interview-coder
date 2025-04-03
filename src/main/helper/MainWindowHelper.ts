@@ -127,7 +127,7 @@ export class MainWindowHelper {
       visibleOnFullScreen: true,
     });
     this.mainWindow.setAlwaysOnTop(true, 'floating', 1);
-    // this.mainWindow.setIgnoreMouseEvents(true, { forward: true });
+    this.mainWindow.setIgnoreMouseEvents(true, { forward: true });
 
     // Additional screen capture resistance settings
     if (process.platform === 'darwin') {
@@ -246,5 +246,12 @@ export class MainWindowHelper {
     stateManager.setState({
       opacity: newOpacity,
     });
+  }
+
+  public setIgnoreMouseEvents(ignore: boolean) {
+    if (!this.mainWindow) return;
+
+    this.mainWindow.setIgnoreMouseEvents(ignore, { forward: true });
+    this.mainWindow.setFocusable(!ignore);
   }
 }

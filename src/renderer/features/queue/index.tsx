@@ -3,22 +3,16 @@ import QueueCommands from './components/QueueCommands';
 import ScreenshotQueue from '../../components/ScreenshotQueue';
 
 function Queue() {
-  const { screenshotQueue } = useSyncedStore();
+  const { screenshotQueue, setScreenshotQueue } = useSyncedStore();
 
   const handleDeleteScreenshot = async (index: number) => {
-    const screenshotToDelete = screenshotQueue[index];
-
-    try {
-      const response = await window.electronAPI.deleteScreenshot(
-        screenshotToDelete.id,
-      );
-
-      if (!response.success) {
-        console.error('Failed to delete screenshot:', response.error);
-      }
-    } catch (error) {
-      console.error('Error deleting screenshot:', error);
+    if (index < 0 || index >= screenshotQueue.length) {
+      return;
     }
+
+    const newQueue = [...screenshotQueue];
+    newQueue.splice(index, 1);
+    setScreenshotQueue(newQueue);
   };
 
   return (

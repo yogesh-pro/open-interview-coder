@@ -3,8 +3,12 @@ import { LANGUAGES, VIEW } from '../../constant';
 import type { AppState } from '../../types';
 
 interface useSyncedStoreInterface extends AppState {
-  setProblemInfo: (problemInfo: AppState['problemInfo']) => void;
   setView: (view: AppState['view']) => void;
+  setScreenshotQueue: (screenshotQueue: AppState['screenshotQueue']) => void;
+  setExtraScreenshotQueue: (
+    extraScreenshotQueue: AppState['extraScreenshotQueue'],
+  ) => void;
+
   setOpenAIApiKey: (apiKey: AppState['openAIApiKey']) => void;
   setGeminiApiKey: (apiKey: AppState['geminiApiKey']) => void;
   setExtractionModel: (model: AppState['extractionModel']) => void;
@@ -26,14 +30,21 @@ export const useSyncedStore = create<useSyncedStoreInterface>((set) => {
   window.electronAPI.onStateUpdate(set);
 
   return {
+    metadata: {
+      isMac: window.electronAPI.isMac(),
+    },
     screenshotQueue: [],
+    setScreenshotQueue: (screenshotQueue) => {
+      set({ screenshotQueue });
+      window.electronAPI.setState({ screenshotQueue });
+    },
     extraScreenshotQueue: [],
+    setExtraScreenshotQueue: (extraScreenshotQueue) => {
+      set({ extraScreenshotQueue });
+      window.electronAPI.setState({ extraScreenshotQueue });
+    },
     problemInfo: null,
     solutionData: null,
-    setProblemInfo: (problemInfo) => {
-      set({ problemInfo });
-      window.electronAPI.setState({ problemInfo });
-    },
     view: VIEW.QUEUE,
     setView: (view) => {
       set({ view });

@@ -1,4 +1,4 @@
-import { LANGUAGES, VIEW } from '../constant';
+import { LANGUAGES, VIEW, SHORTCUTS } from '../constant';
 import { ModelType } from './models';
 import { ProblemSchema, SolutionSchema } from './ProblemInfo';
 
@@ -27,4 +27,12 @@ export interface AppState {
   solutionModel: ModelType | null;
   language: LanguageType;
   opacity: number;
+
+  // Metadata
+  metadata: {
+    isMac: boolean;
+  };
 }
+
+export type AcceleratorElement =
+  (typeof SHORTCUTS)[keyof typeof SHORTCUTS][number];

@@ -1,5 +1,11 @@
 import { ChevronDown } from 'lucide-react';
-import { GEMINI_MODELS, LANGUAGES, OPEN_AI_MODELS } from '../../../constant';
+import {
+  GEMINI_MODELS,
+  LANGUAGES,
+  OPEN_AI_MODELS,
+  RECOMMENDED_EXTRACTION_MODEL,
+  RECOMMENDED_SOLITION_MODEL,
+} from '../../../constant';
 import { LanguageType } from '../../../types';
 import { isGeminiModel, isOpenAIModel, ModelType } from '../../../types/models';
 import { useSyncedStore } from '../../lib/store';
@@ -126,6 +132,7 @@ export function Settings() {
                 value={extractionModel}
                 onChange={setExtractionModel}
                 options={VALID_MODELS}
+                recommended={RECOMMENDED_EXTRACTION_MODEL}
               />
 
               <ModelSelection
@@ -134,6 +141,7 @@ export function Settings() {
                 value={solutionModel}
                 onChange={setSolutionModel}
                 options={VALID_MODELS}
+                recommended={RECOMMENDED_SOLITION_MODEL}
               />
             </dl>
           </div>

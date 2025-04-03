@@ -1,41 +1,44 @@
-import { cn } from '../lib/utils';
+import { AcceleratorElement } from '../../types';
+import { useSyncedStore } from '../lib/store';
 
 interface ShortcutCommandProps {
-  title: string;
-  description: string;
-  shortcut: string;
-  onClick: () => void;
-  isDisabled?: boolean;
+  label: string;
+  accelerator: readonly AcceleratorElement[];
 }
 
-export function ShortcutCommand(props: ShortcutCommandProps) {
-  const { title, description, shortcut, onClick, isDisabled = false } = props;
+const getKeyLabel = (key: AcceleratorElement, isMac: boolean) => {
+  switch (key) {
+    case 'CommandOrControl':
+      return isMac ? '⌘' : 'Ctrl';
+    case 'Shift':
+      return '⇧';
+    default:
+      return key;
+  }
+};
+
+export function ShortcutCommand({ label, accelerator }: ShortcutCommandProps) {
+  const {
+    metadata: { isMac },
+  } = useSyncedStore();
 
   return (
-    <button
-      type="button"
-      className={cn(
-        'w-full cursor-pointer rounded px-2 py-1.5 hover:bg-white/10 transition-colors',
-        isDisabled && 'opacity-50 pointer-events-none',
-      )}
-      onClick={onClick}
-    >
+    <div className="flex flex-col rounded px-2 py-1.5 hover:bg-white/10 transition-colors">
       <div className="flex items-center justify-between">
-        <span className="truncate">{title}</span>
-        <div className="flex gap-1 flex-shrink-0">
-          {shortcut.split('').map((key) => (
+        <span className="text-[11px] leading-none whitespace-nowrap">
+          {label}{' '}
+        </span>
+        <div className="flex gap-1 ml-2">
+          {accelerator.map((key) => (
             <span
               key={key}
-              className="bg-white/20 px-1.5 py-0.5 rounded text-[10px] leading-none"
+              className="bg-white/10 rounded-md px-1.5 py-1 text-[11px] leading-none text-white/70"
             >
-              {key}
+              {getKeyLabel(key, isMac)}
             </span>
           ))}
         </div>
       </div>
-      <p className="text-[10px] text-left leading-relaxed text-white/70 truncate mt-1">
-        {description}
-      </p>
-    </button>
+    </div>
   );
 }
