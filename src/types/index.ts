@@ -23,8 +23,8 @@ export interface AppState {
   // Settings
   openAIApiKey: string | null;
   geminiApiKey: string | null;
-  extractionModel: ModelType;
-  solutionModel: ModelType;
+  extractionModel: ModelType | null;
+  solutionModel: ModelType | null;
   language: LanguageType;
   opacity: number;
 }

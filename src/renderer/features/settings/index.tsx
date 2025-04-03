@@ -1,17 +1,10 @@
 import { ChevronDown } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import { GEMINI_MODELS, LANGUAGES, OPEN_AI_MODELS } from '../../../constant';
 import { LanguageType } from '../../../types';
-import { isOpenAIModel, ModelType } from '../../../types/models';
+import { isGeminiModel, isOpenAIModel, ModelType } from '../../../types/models';
 import { useSyncedStore } from '../../lib/store';
-import { Button } from './components/Button';
-
-const trimmedApiKey = (key: string) => {
-  if (key.length > 6) {
-    return `${key.slice(0, 5)}...${key.slice(-5)}`;
-  }
-  return key;
-};
+import { APIKeyInput } from './components/APIKeyInput';
+import { ModelSelection } from './components/ModelSelection';
 
 export function Settings() {
   const {
@@ -27,11 +20,6 @@ export function Settings() {
     setLanguage,
   } = useSyncedStore();
 
-  const [openAiKeyHolder, setOpenAiKeyHolder] = useState('');
-  const [isEditingOpenAiApiKey, setIsEditingOpenAiApiKey] = useState(false);
-  const [geminiKeyHolder, setGeminiKeyHolder] = useState('');
-  const [isEditingGeminiApiKey, setIsEditingGeminiApiKey] = useState(false);
-
   const VALID_MODELS: ModelType[] = [];
   if (openAIApiKey) {
     VALID_MODELS.push(...Object.values(OPEN_AI_MODELS));
@@ -40,28 +28,33 @@ export function Settings() {
     VALID_MODELS.push(...Object.values(GEMINI_MODELS));
   }
 
-  useEffect(() => {
-    if (!openAIApiKey) {
+  const handleSetOpenAiKey = (key: string) => {
+    if (key === '') {
+      setOpenAIApiKey(null);
       if (isOpenAIModel(solutionModel)) {
-        setSolutionModel(VALID_MODELS[0]);
+        setSolutionModel(null);
       }
-
       if (isOpenAIModel(extractionModel)) {
-        setExtractionModel(VALID_MODELS[0]);
+        setExtractionModel(null);
       }
+      return;
     }
+    setOpenAIApiKey(key);
+  };
 
-    if (!geminiApiKey) {
-      if (!isOpenAIModel(solutionModel)) {
-        setSolutionModel(VALID_MODELS[0]);
+  const handleSetGeminiKey = (key: string) => {
+    if (key === '') {
+      setGeminiApiKey(null);
+      if (isGeminiModel(solutionModel)) {
+        setSolutionModel(null);
       }
-
-      if (!isOpenAIModel(extractionModel)) {
-        setExtractionModel(VALID_MODELS[0]);
+      if (isGeminiModel(extractionModel)) {
+        setExtractionModel(null);
       }
+      return;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [openAIApiKey, geminiApiKey, VALID_MODELS]);
+    setGeminiApiKey(key);
+  };
 
   return (
     <div className="max-w-3xl bg-gray-900/80 py-10">
@@ -127,81 +120,21 @@ export function Settings() {
             </p>
 
             <dl className="mt-6 text-sm/6 space-y-8">
-              <div className="flex justify-between items-center">
-                <div className="max-w-1/2">
-                  <label
-                    htmlFor="extraction-model"
-                    className="block text-sm/6 font-medium text-white"
-                  >
-                    Extraction Model
-                  </label>
-                  <p className="mt-1 text-sm/6 text-gray-400">
-                    Select the model that will be used for extracting
-                    information from screenshots.
-                  </p>
-                </div>
+              <ModelSelection
+                label="Extraction Model"
+                description="Select the model that will be used for extracting information from screenshots."
+                value={extractionModel}
+                onChange={setExtractionModel}
+                options={VALID_MODELS}
+              />
 
-                <div className="grid grid-cols-1">
-                  <select
-                    id="extraction-model"
-                    name="extraction-model"
-                    className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white/5 py-1.5 pr-8 pl-3 text-base text-white outline-1 -outline-offset-1 outline-white/10 *:bg-gray-800 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-500 sm:text-sm/6"
-                    value={extractionModel}
-                    onChange={(e) => {
-                      const selectedModel = e.target.value;
-                      setExtractionModel(selectedModel as ModelType);
-                    }}
-                  >
-                    {VALID_MODELS.map((model) => (
-                      <option key={model} value={model}>
-                        {model}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown
-                    aria-hidden="true"
-                    className="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-gray-400 sm:size-4"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <div className="max-w-1/2">
-                  <label
-                    htmlFor="solution-model"
-                    className="block text-sm/6 font-medium text-white"
-                  >
-                    Solution Model
-                  </label>
-                  <p className="mt-1 text-sm/6 text-gray-400">
-                    Select the model that will be used for generating solutions
-                    from extracted information.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1">
-                  <select
-                    id="solution-model"
-                    name="solution-model"
-                    className="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white/5 py-1.5 pr-8 pl-3 text-base text-white outline-1 -outline-offset-1 outline-white/10 *:bg-gray-800 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-500 sm:text-sm/6"
-                    value={solutionModel}
-                    onChange={(e) => {
-                      const selectedModel = e.target.value;
-                      setSolutionModel(selectedModel as ModelType);
-                    }}
-                  >
-                    {VALID_MODELS.map((model) => (
-                      <option key={model} value={model}>
-                        {model}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown
-                    aria-hidden="true"
-                    className="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-gray-400 sm:size-4"
-                  />
-                </div>
-              </div>
+              <ModelSelection
+                label="Solution Model"
+                description="Select the model that will be used for generating solutions from extracted information."
+                value={solutionModel}
+                onChange={setSolutionModel}
+                options={VALID_MODELS}
+              />
             </dl>
           </div>
 
@@ -210,133 +143,23 @@ export function Settings() {
             <h2 className="text-base/7 font-semibold text-white">API Key</h2>
 
             <dl className="mt-6 text-sm/6 space-y-8">
-              <div className="flex justify-between items-center">
-                <div className="max-w-1/2">
-                  <label
-                    htmlFor="open-ai-api-key"
-                    className="block text-sm/6 font-medium text-white"
-                  >
-                    Open AI API Key
-                  </label>
-                  <p className="mt-1 text-sm/6 text-gray-400">
-                    Please follow the{' '}
-                    <a
-                      href="https://platform.openai.com/api-keys"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-blue-500 hover:text-blue-400"
-                    >
-                      instructions
-                    </a>{' '}
-                    to get up your OpenAI API key.
-                  </p>
-                </div>
+              <APIKeyInput
+                label="Open AI API Key"
+                description="Please follow the instructions to set up your OpenAI API key."
+                apiKey={openAIApiKey}
+                setApiKey={handleSetOpenAiKey}
+                linkUrl="https://platform.openai.com/api-keys"
+                linkText="Instruction link"
+              />
 
-                <div>
-                  {isEditingOpenAiApiKey || openAIApiKey === null ? (
-                    <div className="flex items-center gap-x-2">
-                      <input
-                        id="open-ai-api-key"
-                        name="open-ai-api-key"
-                        type="password"
-                        className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-500 sm:text-sm/6"
-                        placeholder="Enter your key"
-                        value={openAiKeyHolder}
-                        onChange={(e) => setOpenAiKeyHolder(e.target.value)}
-                      />
-                      <Button
-                        onClick={() => {
-                          setOpenAIApiKey(openAiKeyHolder);
-                          setOpenAiKeyHolder('');
-                          setIsEditingOpenAiApiKey(false);
-                        }}
-                        title="Save"
-                        variant="primary"
-                      />
-                      <Button
-                        onClick={() => {
-                          setOpenAiKeyHolder('');
-                          setIsEditingOpenAiApiKey(false);
-                        }}
-                        title="Cancel"
-                      />
-                    </div>
-                  ) : (
-                    <Button
-                      onClick={() => setIsEditingOpenAiApiKey(true)}
-                      title={
-                        openAIApiKey
-                          ? trimmedApiKey(openAIApiKey)
-                          : 'Update API Key'
-                      }
-                    />
-                  )}
-                </div>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <div className="max-w-1/2">
-                  <label
-                    htmlFor="gemini-api-key"
-                    className="block text-sm/6 font-medium text-white"
-                  >
-                    Gemini API Key
-                  </label>
-                  <p className="mt-1 text-sm/6 text-gray-400">
-                    Please follow the{' '}
-                    <a
-                      href="https://aistudio.google.com/apikey"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-blue-500 hover:text-blue-400"
-                    >
-                      instructions
-                    </a>{' '}
-                    to get up your Gemini API key.
-                  </p>
-                </div>
-
-                <div>
-                  {isEditingGeminiApiKey || geminiApiKey === null ? (
-                    <div className="flex items-center gap-x-2">
-                      <input
-                        id="gemini-api-key"
-                        name="gemini-api-key"
-                        type="password"
-                        className="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-500 sm:text-sm/6"
-                        placeholder="Enter your key"
-                        value={geminiKeyHolder}
-                        onChange={(e) => setGeminiKeyHolder(e.target.value)}
-                      />
-                      <Button
-                        onClick={() => {
-                          setGeminiApiKey(geminiKeyHolder);
-                          setGeminiKeyHolder('');
-                          setIsEditingGeminiApiKey(false);
-                        }}
-                        title="Save"
-                        variant="primary"
-                      />
-                      <Button
-                        onClick={() => {
-                          setGeminiKeyHolder('');
-                          setIsEditingGeminiApiKey(false);
-                        }}
-                        title="Cancel"
-                      />
-                    </div>
-                  ) : (
-                    <Button
-                      onClick={() => setIsEditingGeminiApiKey(true)}
-                      title={
-                        geminiApiKey
-                          ? trimmedApiKey(geminiApiKey)
-                          : 'Update API Key'
-                      }
-                    />
-                  )}
-                </div>
-              </div>
+              <APIKeyInput
+                label="Google Gemini API Key"
+                description="Please follow the instructions to set up your Google Gemini API key."
+                apiKey={geminiApiKey}
+                setApiKey={handleSetGeminiKey}
+                linkUrl="https://aistudio.google.com/apikey"
+                linkText="Instruction link"
+              />
             </dl>
           </div>
         </div>
