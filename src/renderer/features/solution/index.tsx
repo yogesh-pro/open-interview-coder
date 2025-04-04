@@ -13,7 +13,7 @@ function Solutions() {
       <SolutionCommands />
 
       {/* Main Content - Modified width constraints */}
-      <div className="w-full h-full text-sm text-black bg-black/30 rounded-lg">
+      <div className="w-full h-full text-sm text-black bg-black/50 rounded-lg">
         <div className="flex px-4 py-3 space-y-4 max-w-full">
           <div className="w-full max-w-1/2 space-y-8">
             <ContentSection

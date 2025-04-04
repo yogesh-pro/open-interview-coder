@@ -91,9 +91,10 @@ export class MainWindowHelper {
       paintWhenInitiallyHidden: true,
       titleBarStyle: 'hidden',
       enableLargerThanScreen: true,
-      movable: true,
+      movable: false,
       resizable: false,
       icon: getAssetPath('icon.png'),
+      opacity: stateManager.getState().opacity / 100,
     });
 
     this.mainWindow.loadURL(resolveHtmlPath('index.html'));
@@ -121,17 +122,17 @@ export class MainWindowHelper {
 
     // Enhanced screen capture resistance
     this.mainWindow.setContentProtection(true);
-    this.mainWindow.setHiddenInMissionControl(true);
     this.mainWindow.setVisibleOnAllWorkspaces(true, {
       visibleOnFullScreen: true,
     });
-    this.mainWindow.setAlwaysOnTop(true, 'floating', 1);
+    this.mainWindow.setAlwaysOnTop(true, 'screen-saver', 1);
     this.mainWindow.setIgnoreMouseEvents(true, { forward: true });
 
     // Additional screen capture resistance settings
     if (process.platform === 'darwin') {
       // Prevent window from being captured in screenshots
       this.mainWindow.setWindowButtonVisibility(false);
+      this.mainWindow.setHiddenInMissionControl(true);
       this.mainWindow.setBackgroundColor('#00000000');
 
       // Prevent window from being included in window switcher
@@ -233,7 +234,7 @@ export class MainWindowHelper {
 
     this.mainWindow.setContentProtection(true);
     this.mainWindow.showInactive();
-    this.mainWindow.setOpacity(1);
+    this.mainWindow.setOpacity(stateManager.getState().opacity / 100);
   }
 
   public toggleMainWindow() {

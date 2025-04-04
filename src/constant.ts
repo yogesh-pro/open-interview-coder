@@ -26,12 +26,12 @@ export const RECOMMENDED_SOLITION_MODEL = [
 ] as const;
 
 export const LANGUAGES = {
-  PYTHON: 'Python',
-  JAVASCRIPT: 'JavaScript',
-  JAVA: 'Java',
-  GOLANG: 'Go',
-  CPP: 'C++',
-  KOTLIN: 'Kotlin',
+  PYTHON: 'python',
+  JAVASCRIPT: 'javascript',
+  JAVA: 'java',
+  GOLANG: 'go',
+  CPP: 'cpp',
+  KOTLIN: 'kotlin',
 } as const;
 
 export const MAX_SCREENSHOTS = 5;

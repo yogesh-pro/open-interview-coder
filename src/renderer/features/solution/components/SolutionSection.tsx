@@ -32,7 +32,7 @@ export function SolutionSection({
         <div className="w-fit">
           <SyntaxHighlighter
             showLineNumbers
-            language={language === 'Go' ? 'go' : language}
+            language={language}
             style={dracula}
             customStyle={{
               width: '100%',
