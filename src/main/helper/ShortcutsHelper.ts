@@ -71,13 +71,6 @@ export class ShortcutsHelper {
         screenshotQueue: [],
         extraScreenshotQueue: [],
       });
-
-      // Notify renderer process to switch view to 'queue'
-      const mainWindow = this.mainWindowHelper.getMainWindow();
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('reset-view');
-        mainWindow.webContents.send('reset');
-      }
     });
 
     // New shortcuts for moving the window
@@ -138,10 +131,10 @@ export class ShortcutsHelper {
 
     globalShortcut.register(buildAccelerator(SHORTCUTS.TOGGLE_SETTINGS), () => {
       console.log('Command/Ctrl + Shift + I pressed. Opening settings.');
-      const { view } = stateManager.getState();
+      const { view, problemInfo, solutionData } = stateManager.getState();
       if (view === 'settings') {
         stateManager.setState({
-          view: 'queue',
+          view: problemInfo && solutionData ? 'solutions' : 'queue',
         });
         this.mainWindowHelper.setIgnoreMouseEvents(true);
       } else {

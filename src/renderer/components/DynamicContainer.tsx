@@ -30,7 +30,9 @@ export function DynamicContainer(props: React.PropsWithChildren) {
     return () => {
       mutationObserver.disconnect();
     };
-  }, [updateDimensions]);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return <div ref={containerRef}>{children}</div>;
 }

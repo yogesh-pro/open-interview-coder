@@ -12,7 +12,7 @@ const electronAPI = {
   },
   updateContentDimensions: (dimensions: { width: number; height: number }) =>
     ipcRenderer.invoke('update-content-dimensions', dimensions),
-  isMac: () => ipcRenderer.invoke('is-mac'),
+  isMac: () => ipcRenderer.invoke('is-mac') as Promise<boolean>,
 };
 
 contextBridge.exposeInMainWorld('electronAPI', electronAPI);

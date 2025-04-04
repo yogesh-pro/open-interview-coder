@@ -13,7 +13,7 @@ export function ComplexitySection({
         Complexity
       </h2>
       {isLoading ? (
-        <p className="text-xs bg-gradient-to-r from-gray-300 via-gray-100 to-gray-300 bg-clip-text text-transparent animate-pulse">
+        <p className="text-xs bg-gradient-to-r from-gray-300 via-gray-100 to-gray-300 bg-clip-text text-transparent">
           Calculating complexity...
         </p>
       ) : (

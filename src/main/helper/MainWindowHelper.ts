@@ -68,7 +68,6 @@ export class MainWindowHelper {
     };
 
     this.mainWindow = new BrowserWindow({
-      useContentSize: true,
       x: 50,
       y: 50,
       alwaysOnTop: true,
@@ -172,16 +171,26 @@ export class MainWindowHelper {
   public setWindowDimensions(width: number, height: number) {
     if (!this.mainWindow || this.mainWindow.isDestroyed()) return;
 
-    const [currentX, currentY] = this.mainWindow.getPosition();
-    const workArea = screen.getPrimaryDisplay().workAreaSize;
-    const maxWidth = Math.floor(workArea.width * 0.5);
+    const { workAreaSize } = screen.getPrimaryDisplay();
 
-    this.mainWindow.setBounds({
-      x: Math.min(currentX, workArea.width - maxWidth),
-      y: currentY,
-      width: Math.min(width + 32, maxWidth),
-      height: Math.ceil(height),
-    });
+    if (stateManager.getState().view !== 'solutions') {
+      const [currentX, currentY] = this.mainWindow.getPosition();
+      const maxWidth = Math.floor(workAreaSize.width * 0.5);
+
+      this.mainWindow.setBounds({
+        x: Math.min(currentX, workAreaSize.width - maxWidth),
+        y: currentY,
+        width: Math.min(width + 32, maxWidth),
+        height: Math.ceil(height),
+      });
+    } else {
+      this.mainWindow.setBounds({
+        x: 16,
+        y: 16,
+        width: workAreaSize.width - 32,
+        height: Math.ceil(height),
+      });
+    }
   }
 
   public moveWindowVertical(updateFn: (y: number) => number) {
@@ -252,6 +261,5 @@ export class MainWindowHelper {
     if (!this.mainWindow) return;
 
     this.mainWindow.setIgnoreMouseEvents(ignore, { forward: true });
-    this.mainWindow.setFocusable(!ignore);
   }
 }

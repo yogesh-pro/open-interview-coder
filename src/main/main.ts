@@ -13,6 +13,7 @@ import { MainWindowHelper } from './helper/MainWindowHelper';
 import { ShortcutsHelper } from './helper/ShortcutsHelper';
 import { initializeIpcHandlers } from './ipcHandlers';
 import { initializeStateManager } from './stateManager';
+import { isDebug } from './constant';
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -56,5 +57,9 @@ app
         mainWindowHelper.createWindow();
       }
     });
+    if (isDebug)
+      mainWindowHelper.getMainWindow()?.webContents.openDevTools({
+        mode: 'detach',
+      });
   })
   .catch(console.log);

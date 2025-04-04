@@ -31,7 +31,7 @@ export const useSyncedStore = create<useSyncedStoreInterface>((set) => {
 
   return {
     metadata: {
-      isMac: window.electronAPI.isMac(),
+      isMac: false,
     },
     screenshotQueue: [],
     setScreenshotQueue: (screenshotQueue) => {
