@@ -42,7 +42,11 @@ export const generateSolutionResponses = async (
     );
 
   if (isGeminiModel(solutionModel))
-    return GeminiHandler.generateSolutionResponses(solutionModel, problemInfo);
+    return GeminiHandler.generateSolutionResponses(
+      solutionModel,
+      problemInfo.coding_data,
+      signal,
+    );
 
   throw new Error(`Unsupported solution model: ${solutionModel}`);
 };

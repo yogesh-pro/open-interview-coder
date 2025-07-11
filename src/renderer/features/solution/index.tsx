@@ -1,3 +1,4 @@
+import { ProblemSchema } from '../../../types/ProblemInfo';
 import { useSyncedStore } from '../../lib/store';
 import { ComplexitySection } from './components/ComplexitySection';
 import { ContentSection } from './components/ContentSection';
@@ -46,8 +47,8 @@ function Solutions() {
     );
   }
 
-  // Handle coding problems (existing logic)
-  const codingData = problemInfo?.type === 'coding' ? problemInfo.coding_data : null;
+  // Handle coding problems (existing logic with proper legacy fallback)
+  const codingData = problemInfo?.type === 'coding' ? problemInfo.coding_data : (problemInfo?.type ? null : problemInfo as unknown as ProblemSchema);
 
   return (
     <div className="relative w-full space-y-3 px-4 py-3 overflow-hidden">

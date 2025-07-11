@@ -374,19 +374,15 @@ export async function extractProblemInfo(
 
 export async function generateSolutionResponses(
   modelName: GeminiModel,
-  problemInfo: UnifiedProblemSchema,
+  problemInfo: ProblemSchema,
+  signal: AbortSignal, // AbortSignal not directly supported by generateContent, but included for consistency
 ): Promise<SolutionSchema> {
   const { geminiApiKey } = stateManager.getState(); // Get Gemini key
   if (!geminiApiKey) {
     throw new Error('Gemini API key not set');
   }
 
-  // Only generate solutions for coding problems
-  if (problemInfo.type !== 'coding' || !problemInfo.coding_data) {
-    throw new Error('Solution generation is only available for coding problems');
-  }
-
-  const codingData = problemInfo.coding_data;
+  const codingData = problemInfo;
 
   const genAI = new GoogleGenerativeAI(geminiApiKey);
   // Consider using a more powerful model like Pro for generation tasks if needed
